@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f7f3e8;
+  --ink: #23324d;
+  --ledger-green: #1f3d2e;
+  --ledger-green-soft: #2f6b4f;
+  --gold: #b8860b;
+  --rust: #a63d40;
+  --line: #d8cfb8;
+  --card: #fffdf7;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), sans-serif;
+}
+
+.serif {
+  font-family: var(--font-serif), serif;
+}
+.mono {
+  font-family: var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+.ledger-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.3);
+}
+input[type="range"] {
+  accent-color: var(--ledger-green-soft);
+}
