@@ -5,7 +5,7 @@ import {
   Loader2, LogOut, LayoutDashboard, NotebookPen, SlidersHorizontal, GraduationCap, Landmark,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { monthKey, todayKey } from "@/lib/ledgerConstants";
+import { monthKey, todayKey, CURRENCIES, DEFAULT_CURRENCY, setActiveCurrency } from "@/lib/ledgerConstants";
 import DashboardTab from "@/components/tabs/DashboardTab";
 import LedgerTab from "@/components/tabs/LedgerTab";
 import AllocateTab from "@/components/tabs/AllocateTab";
@@ -31,6 +31,7 @@ export default function LedgerApp({ session }) {
   const [transactions, setTransactions] = useState([]);
   const [goal, setGoal] = useState(5000);
   const [alloc, setAlloc] = useState({ monthly: 500, low: 60, medium: 30, high: 10 });
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [activeMonth, setActiveMonth] = useState(todayKey());
   const [rates, setRates] = useState([]);
 
@@ -54,6 +55,9 @@ export default function LedgerApp({ session }) {
         await supabase.from("allocations").insert({ user_id: user.id }).select();
       }
       setProfile(profileRow);
+      const savedCurrency = profileRow?.currency || DEFAULT_CURRENCY;
+      setActiveCurrency(savedCurrency);
+      setCurrency(savedCurrency);
 
       const [{ data: txRows }, { data: goalRow }, { data: allocRow }, { data: rateRows }] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
@@ -191,6 +195,18 @@ export default function LedgerApp({ session }) {
     setSaving(false);
   }
 
+  async function handleCurrencyChange(code) {
+    setActiveCurrency(code);
+    setCurrency(code);
+    setSaving(true);
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ currency: code })
+      .eq("id", user.id);
+    if (updateError) setError(updateError.message);
+    setSaving(false);
+  }
+
   function handleSignOut() {
     supabase.auth.signOut();
   }
@@ -217,6 +233,18 @@ export default function LedgerApp({ session }) {
             <p className="text-[#B9C9BB] text-[11px] mono">signed in as {displayName}</p>
           </div>
           <div className="flex items-center gap-4">
+            <select
+              value={currency}
+              onChange={(e) => handleCurrencyChange(e.target.value)}
+              aria-label="Currency"
+              className="bg-transparent text-[11px] mono text-[#B9C9BB] border border-[#3D5C4A] rounded px-1.5 py-0.5 cursor-pointer hover:text-white focus:outline-none"
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code} style={{ color: "var(--ink)" }}>
+                  {c.symbol} {c.code}
+                </option>
+              ))}
+            </select>
             <span className="text-[11px] mono text-[#B9C9BB]">{saving ? "saving…" : "synced"}</span>
             <button onClick={handleSignOut} className="flex items-center gap-1 text-xs text-[#E8E2CE] hover:text-white">
               <LogOut size={13} /> Sign out
