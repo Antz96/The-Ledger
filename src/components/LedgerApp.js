@@ -32,6 +32,7 @@ export default function LedgerApp({ session }) {
   const [goal, setGoal] = useState(5000);
   const [alloc, setAlloc] = useState({ monthly: 500, low: 60, medium: 30, high: 10 });
   const [activeMonth, setActiveMonth] = useState(todayKey());
+  const [rates, setRates] = useState([]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -54,13 +55,15 @@ export default function LedgerApp({ session }) {
       }
       setProfile(profileRow);
 
-      const [{ data: txRows }, { data: goalRow }, { data: allocRow }] = await Promise.all([
+      const [{ data: txRows }, { data: goalRow }, { data: allocRow }, { data: rateRows }] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
         supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("savings_rates").select("*").order("apy_pct", { ascending: false }),
       ]);
 
       setTransactions(txRows || []);
+      setRates(rateRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -142,6 +145,52 @@ export default function LedgerApp({ session }) {
     setSaving(false);
   }
 
+  async function handleAddRate(rate) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: insertError } = await supabase.from("savings_rates").insert(rate).select().single();
+      if (insertError) throw insertError;
+      setRates((prev) => [...prev, data].sort((a, b) => b.apy_pct - a.apy_pct));
+    } catch (err) {
+      setError(err.message || "Couldn't add that rate.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdateRate(id, patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: updateError } = await supabase
+        .from("savings_rates")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setRates((prev) => prev.map((r) => (r.id === id ? data : r)).sort((a, b) => b.apy_pct - a.apy_pct));
+    } catch (err) {
+      setError(err.message || "Couldn't update that rate.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteRate(id) {
+    setSaving(true);
+    setError(null);
+    const prev = rates;
+    setRates((r) => r.filter((row) => row.id !== id));
+    const { error: deleteError } = await supabase.from("savings_rates").delete().eq("id", id);
+    if (deleteError) {
+      setError(deleteError.message);
+      setRates(prev);
+    }
+    setSaving(false);
+  }
+
   function handleSignOut() {
     supabase.auth.signOut();
   }
@@ -219,7 +268,15 @@ export default function LedgerApp({ session }) {
         )}
         {tab === "allocate" && <AllocateTab alloc={alloc} onUpdate={handleAllocUpdate} />}
         {tab === "learn" && <LearnTab />}
-        {tab === "rates" && <RatesTab />}
+        {tab === "rates" && (
+          <RatesTab
+            rates={rates}
+            isAdmin={!!profile?.is_admin}
+            onAdd={handleAddRate}
+            onUpdate={handleUpdateRate}
+            onDelete={handleDeleteRate}
+          />
+        )}
       </div>
     </div>
   );
