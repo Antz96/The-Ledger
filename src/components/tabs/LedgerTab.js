@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { fmt, monthLabel, monthKey, TYPE_META } from "@/lib/ledgerConstants";
+import { fmt, currencySymbol, monthLabel, monthKey, TYPE_META } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
 
 export default function LedgerTab({ transactions, activeMonth, setActiveMonth, onAdd, onDelete }) {
@@ -68,7 +68,7 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
             </select>
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">AMOUNT ($)</label>
+            <label className="block text-[10px] mono opacity-60 mb-1">AMOUNT ({currencySymbol()})</label>
             <input
               type="number" min="0" step="0.01"
               value={form.amount}
