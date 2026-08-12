@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Loader2, LogOut, LayoutDashboard, NotebookPen, SlidersHorizontal, GraduationCap, Landmark,
+  Loader2, LogOut, LayoutDashboard, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { monthKey, todayKey, CURRENCIES, DEFAULT_CURRENCY, setActiveCurrency } from "@/lib/ledgerConstants";
@@ -11,6 +11,8 @@ import LedgerTab from "@/components/tabs/LedgerTab";
 import AllocateTab from "@/components/tabs/AllocateTab";
 import LearnTab from "@/components/tabs/LearnTab";
 import RatesTab from "@/components/tabs/RatesTab";
+import AdminTab from "@/components/tabs/AdminTab";
+import { adminFetch } from "@/lib/adminApi";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -32,6 +34,15 @@ export default function LedgerApp({ session }) {
   const [goal, setGoal] = useState(5000);
   const [alloc, setAlloc] = useState({ monthly: 500, low: 60, medium: 30, high: 10 });
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    adminFetch("/api/admin/me")
+      .then(() => { if (!cancelled) setIsAdmin(true); })
+      .catch(() => {}); // 401/403 → not an admin, tab stays hidden
+    return () => { cancelled = true; };
+  }, []);
   const [activeMonth, setActiveMonth] = useState(todayKey());
 
   const loadAll = useCallback(async () => {
@@ -203,7 +214,7 @@ export default function LedgerApp({ session }) {
           </div>
         </div>
         <div className="flex gap-1 mt-4 overflow-x-auto">
-          {NAV.map((n) => (
+          {(isAdmin ? [...NAV, { id: "admin", label: "Admin", icon: ShieldCheck }] : NAV).map((n) => (
             <button
               key={n.id}
               onClick={() => setTab(n.id)}
@@ -248,6 +259,7 @@ export default function LedgerApp({ session }) {
         {tab === "allocate" && <AllocateTab alloc={alloc} onUpdate={handleAllocUpdate} />}
         {tab === "learn" && <LearnTab />}
         {tab === "rates" && <RatesTab />}
+        {tab === "admin" && isAdmin && <AdminTab />}
       </div>
     </div>
   );

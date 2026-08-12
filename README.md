@@ -63,4 +63,17 @@ email" is on in Supabase's Auth settings, you'll need to click the confirmation 
 See [docs/build-plan.md](docs/build-plan.md) section 2 for the schema, and
 [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql) for the actual SQL. Every table
 has row-level security enabled with policies of the form `auth.uid() = user_id` — a signed-in user can
-only ever read or write their own rows; there is no shared/admin bypass in the app itself.
+only ever read or write their own rows. The only bypass is the server-side admin API described below.
+
+## Admin
+
+Accounts listed in the `ADMIN_EMAILS` env var get an **Admin** tab showing every live account
+(email, last sign-in, entry counts, aggregate stats) with two actions: permanently delete an
+account, or send it a password-reset email. Admin accounts themselves can't be deleted from the app.
+
+Enforcement is server-side: the tab is backed by route handlers under `src/app/api/admin/` that
+verify the caller's access token and email allowlist before using the Supabase service-role key
+(`SUPABASE_SERVICE_ROLE_KEY`). Both env vars are server-only — never prefix them with
+`NEXT_PUBLIC_`, and set them in Vercel's project settings for deploys. Password-reset emails
+require the site URL to be in Supabase → Authentication → URL Configuration → Redirect URLs, and
+Supabase's built-in mailer is rate-limited to a few emails per hour unless custom SMTP is set up.
