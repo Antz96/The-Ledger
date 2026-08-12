@@ -5,7 +5,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from "recharts";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Wallet } from "lucide-react";
-import { fmt, monthLabel, PIE_COLORS } from "@/lib/ledgerConstants";
+import { fmt, currencySymbol, monthLabel, PIE_COLORS } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
 import SummaryCard from "@/components/ui/SummaryCard";
 
@@ -71,7 +71,7 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
           <p className="serif text-sm tracking-wide opacity-80">Savings goal — all-time</p>
           <div className="flex items-center gap-2 text-xs mono">
-            <span className="opacity-60">target</span><span>$</span>
+            <span className="opacity-60">target</span><span>{currencySymbol()}</span>
             <input
               value={goalDraft}
               onChange={(e) => setGoalDraft(e.target.value.replace(/[^0-9.]/g, ""))}

@@ -1,7 +1,7 @@
 "use client";
 
 import { ShieldAlert } from "lucide-react";
-import { fmt } from "@/lib/ledgerConstants";
+import { fmt, currencySymbol } from "@/lib/ledgerConstants";
 
 const ROWS = [
   { key: "low", label: "Low risk", desc: "Savings accounts, CDs, money market", color: "var(--ledger-green-soft)" },
@@ -23,7 +23,7 @@ export default function AllocateTab({ alloc, onUpdate }) {
         <p className="serif text-sm tracking-wide opacity-80 mb-1">Monthly savings to allocate</p>
         <p className="text-xs mono opacity-50 mb-3">How much do you set aside each month, and how should it split across risk tiers?</p>
         <div className="flex items-center gap-2 mb-5">
-          <span className="mono text-sm">$</span>
+          <span className="mono text-sm">{currencySymbol()}</span>
           <input
             type="number" min="0"
             value={alloc.monthly}
