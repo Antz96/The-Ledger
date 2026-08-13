@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, NotebookPen, SlidersHorizontal, GraduationCap, Landmark } from "lucide-react";
+import { LogOut, LayoutDashboard, Wallet, NotebookPen, SlidersHorizontal, GraduationCap, Landmark } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/assets", label: "Assets", icon: Wallet },
   { href: "/ledger", label: "Ledger", icon: NotebookPen },
   { href: "/allocate", label: "Allocate", icon: SlidersHorizontal },
   { href: "/learn", label: "Learn", icon: GraduationCap },
