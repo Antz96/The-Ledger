@@ -494,6 +494,10 @@ export function LedgerDataProvider({ session, children }) {
     supabase.auth.signOut();
   }
 
+  function clearError() {
+    setError(null);
+  }
+
   const value = {
     user,
     profile,
@@ -540,6 +544,7 @@ export function LedgerDataProvider({ session, children }) {
     handleToggleCreditGoal,
     handleCurrencyChange,
     handleSignOut,
+    clearError,
   };
 
   return <LedgerDataContext.Provider value={value}>{children}</LedgerDataContext.Provider>;

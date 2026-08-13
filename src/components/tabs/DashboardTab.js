@@ -52,12 +52,12 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => shiftMonth(-1)} className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronLeft size={18} /></button>
+        <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronLeft size={18} /></button>
         <div className="text-center">
           <p className="serif text-xl sm:text-2xl">{monthLabel(activeMonth)}</p>
           <p className="text-[11px] mono opacity-50">page {monthIndex + 1} of {months.length}</p>
         </div>
-        <button onClick={() => shiftMonth(1)} className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronRight size={18} /></button>
+        <button onClick={() => shiftMonth(1)} aria-label="Next month" className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronRight size={18} /></button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -71,8 +71,10 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
           <p className="serif text-sm tracking-wide opacity-80">Savings goal — all-time</p>
           <div className="flex items-center gap-2 text-xs mono">
-            <span className="opacity-60">target</span><span>{currencySymbol()}</span>
+            <label htmlFor="dashboard-goal-target" className="opacity-60">target</label><span>{currencySymbol()}</span>
             <input
+              id="dashboard-goal-target"
+              aria-label="Savings goal target amount"
               value={goalDraft}
               onChange={(e) => setGoalDraft(e.target.value.replace(/[^0-9.]/g, ""))}
               onBlur={handleGoalSave}

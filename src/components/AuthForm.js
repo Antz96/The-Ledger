@@ -63,8 +63,9 @@ export default function AuthForm() {
           <>
             {mode === "signup" && (
               <>
-                <label className="block text-[10px] mono opacity-60 mb-1">DISPLAY NAME</label>
+                <label htmlFor="auth-name" className="block text-[10px] mono opacity-60 mb-1">DISPLAY NAME</label>
                 <input
+                  id="auth-name"
                   autoFocus
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
@@ -73,8 +74,9 @@ export default function AuthForm() {
                 />
               </>
             )}
-            <label className="block text-[10px] mono opacity-60 mb-1">EMAIL</label>
+            <label htmlFor="auth-email" className="block text-[10px] mono opacity-60 mb-1">EMAIL</label>
             <input
+              id="auth-email"
               type="email"
               autoFocus={mode === "signin"}
               value={email}
@@ -82,8 +84,9 @@ export default function AuthForm() {
               placeholder="you@example.com"
               className="w-full border border-[#D8CFB8] rounded px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[#2F6B4F] bg-white"
             />
-            <label className="block text-[10px] mono opacity-60 mb-1">PASSWORD</label>
+            <label htmlFor="auth-password" className="block text-[10px] mono opacity-60 mb-1">PASSWORD</label>
             <input
+              id="auth-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -91,7 +94,7 @@ export default function AuthForm() {
               className="w-full border border-[#D8CFB8] rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:border-[#2F6B4F] bg-white"
             />
 
-            {error && <p className="text-xs mb-3" style={{ color: "var(--rust)" }}>{error}</p>}
+            {error && <p role="alert" className="text-xs mb-3" style={{ color: "var(--rust)" }}>{error}</p>}
 
             <p className="text-[11px] mono opacity-50 mb-5 leading-relaxed">
               Real account, stored by Supabase Auth. Nothing here is financial advice — see the Learn tab once

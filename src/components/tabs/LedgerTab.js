@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { fmt, monthLabel, monthKey, TYPE_META } from "@/lib/ledgerConstants";
+import { fmt, currencySymbol, monthLabel, monthKey, TYPE_META } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
 
 export default function LedgerTab({ transactions, activeMonth, setActiveMonth, onAdd, onDelete }) {
@@ -30,17 +30,18 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => shiftMonth(-1)} className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronLeft size={18} /></button>
+        <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronLeft size={18} /></button>
         <p className="serif text-xl">{monthLabel(activeMonth)}</p>
-        <button onClick={() => shiftMonth(1)} className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronRight size={18} /></button>
+        <button onClick={() => shiftMonth(1)} aria-label="Next month" className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronRight size={18} /></button>
       </div>
 
       <div className="ledger-card p-4 sm:p-5 mb-6">
         <p className="serif text-sm tracking-wide opacity-80 mb-3">Add an entry</p>
         <form onSubmit={handleAdd} className="grid grid-cols-2 sm:grid-cols-6 gap-3 items-end">
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">DATE</label>
+            <label htmlFor="ledger-date" className="block text-[10px] mono opacity-60 mb-1">DATE</label>
             <input
+              id="ledger-date"
               type="date"
               value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
@@ -48,8 +49,9 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
             />
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">TYPE</label>
+            <label htmlFor="ledger-type" className="block text-[10px] mono opacity-60 mb-1">TYPE</label>
             <select
+              id="ledger-type"
               value={form.type}
               onChange={(e) => { const type = e.target.value; setForm((f) => ({ ...f, type, category: TYPE_META[type].cats[0] })); }}
               className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -58,8 +60,9 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
             </select>
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
+            <label htmlFor="ledger-category" className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
             <select
+              id="ledger-category"
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
               className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -68,8 +71,9 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
             </select>
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">AMOUNT ($)</label>
+            <label htmlFor="ledger-amount" className="block text-[10px] mono opacity-60 mb-1">AMOUNT ({currencySymbol()})</label>
             <input
+              id="ledger-amount"
               type="number" min="0" step="0.01"
               value={form.amount}
               onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
@@ -78,8 +82,9 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
             />
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">NOTE</label>
+            <label htmlFor="ledger-note" className="block text-[10px] mono opacity-60 mb-1">NOTE</label>
             <input
+              id="ledger-note"
               type="text"
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
@@ -124,7 +129,7 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
                     <td className="px-3 py-2 text-xs opacity-60">{t.note || "—"}</td>
                     <td className="px-3 py-2 mono text-right" style={{ color: TYPE_META[t.type].color }}>{fmt(t.amount)}</td>
                     <td className="px-3 py-2 text-right">
-                      <button onClick={() => onDelete(t.id)} className="opacity-40 hover:opacity-100"><Trash2 size={14} /></button>
+                      <button onClick={() => onDelete(t.id)} aria-label={`Delete entry: ${t.category} ${fmt(t.amount)} on ${t.date}`} className="opacity-40 hover:opacity-100"><Trash2 size={14} /></button>
                     </td>
                   </tr>
                 ))}

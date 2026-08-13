@@ -76,8 +76,8 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
           </div>
           {isAdmin && (
             <div className="flex gap-2 flex-shrink-0">
-              <button onClick={() => setEditing(true)} className="opacity-50 hover:opacity-100"><Pencil size={15} /></button>
-              <button onClick={handleDelete} className="opacity-50 hover:opacity-100"><Trash2 size={15} /></button>
+              <button onClick={() => setEditing(true)} aria-label={`Edit ${opportunity.name}`} className="opacity-50 hover:opacity-100"><Pencil size={15} /></button>
+              <button onClick={handleDelete} aria-label={`Delete ${opportunity.name}`} className="opacity-50 hover:opacity-100"><Trash2 size={15} /></button>
             </div>
           )}
         </div>
@@ -222,37 +222,37 @@ function EditForm({ opportunity, onSave, onCancel }) {
       <div className="ledger-card p-4 sm:p-5 space-y-3">
         <p className="serif text-sm tracking-wide opacity-80">Edit opportunity</p>
         <div>
-          <label className={labelClass}>NAME</label>
-          <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inputClass} />
+          <label htmlFor="opp-name" className={labelClass}>NAME</label>
+          <input id="opp-name" value={form.name} onChange={(e) => set("name", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>DESCRIPTION</label>
-          <input value={form.description} onChange={(e) => set("description", e.target.value)} className={inputClass} />
+          <label htmlFor="opp-description" className={labelClass}>DESCRIPTION</label>
+          <input id="opp-description" value={form.description} onChange={(e) => set("description", e.target.value)} className={inputClass} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>RISK</label>
-            <select value={form.risk_level} onChange={(e) => set("risk_level", e.target.value)} className={inputClass}>
+            <label htmlFor="opp-risk" className={labelClass}>RISK</label>
+            <select id="opp-risk" value={form.risk_level} onChange={(e) => set("risk_level", e.target.value)} className={inputClass}>
               {RISK_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
           <div>
-            <label className={labelClass}>TYPICAL PURPOSE</label>
-            <select value={form.typical_purpose} onChange={(e) => set("typical_purpose", e.target.value)} className={inputClass}>
+            <label htmlFor="opp-purpose" className={labelClass}>TYPICAL PURPOSE</label>
+            <select id="opp-purpose" value={form.typical_purpose} onChange={(e) => set("typical_purpose", e.target.value)} className={inputClass}>
               <option value="">—</option>
               {PURPOSE_OPTIONS.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
           <div>
-            <label className={labelClass}>LIQUIDITY</label>
-            <select value={form.liquidity} onChange={(e) => set("liquidity", e.target.value)} className={inputClass}>
+            <label htmlFor="opp-liquidity" className={labelClass}>LIQUIDITY</label>
+            <select id="opp-liquidity" value={form.liquidity} onChange={(e) => set("liquidity", e.target.value)} className={inputClass}>
               <option value="">—</option>
               {LIQUIDITY_OPTIONS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
           <div>
-            <label className={labelClass}>TIME HORIZON</label>
-            <select value={form.time_horizon} onChange={(e) => set("time_horizon", e.target.value)} className={inputClass}>
+            <label htmlFor="opp-horizon" className={labelClass}>TIME HORIZON</label>
+            <select id="opp-horizon" value={form.time_horizon} onChange={(e) => set("time_horizon", e.target.value)} className={inputClass}>
               <option value="">—</option>
               {HORIZON_OPTIONS.map((h) => <option key={h} value={h}>{h}</option>)}
             </select>
@@ -260,39 +260,39 @@ function EditForm({ opportunity, onSave, onCancel }) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>FEES</label>
-            <input value={form.fees} onChange={(e) => set("fees", e.target.value)} className={inputClass} />
+            <label htmlFor="opp-fees" className={labelClass}>FEES</label>
+            <input id="opp-fees" value={form.fees} onChange={(e) => set("fees", e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>TAX CONSIDERATIONS</label>
-            <input value={form.tax_considerations} onChange={(e) => set("tax_considerations", e.target.value)} className={inputClass} />
+            <label htmlFor="opp-tax" className={labelClass}>TAX CONSIDERATIONS</label>
+            <input id="opp-tax" value={form.tax_considerations} onChange={(e) => set("tax_considerations", e.target.value)} className={inputClass} />
           </div>
         </div>
         <div>
-          <label className={labelClass}>COMMON ACCESS ROUTES</label>
-          <input value={form.common_access_routes} onChange={(e) => set("common_access_routes", e.target.value)} className={inputClass} />
+          <label htmlFor="opp-access" className={labelClass}>COMMON ACCESS ROUTES</label>
+          <input id="opp-access" value={form.common_access_routes} onChange={(e) => set("common_access_routes", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>HOW IT WORKS</label>
-          <textarea value={form.how_it_works} onChange={(e) => set("how_it_works", e.target.value)} rows={3} className={inputClass} />
+          <label htmlFor="opp-how" className={labelClass}>HOW IT WORKS</label>
+          <textarea id="opp-how" value={form.how_it_works} onChange={(e) => set("how_it_works", e.target.value)} rows={3} className={inputClass} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>PROS (one per line)</label>
-            <textarea value={form.pros} onChange={(e) => set("pros", e.target.value)} rows={4} className={inputClass} />
+            <label htmlFor="opp-pros" className={labelClass}>PROS (one per line)</label>
+            <textarea id="opp-pros" value={form.pros} onChange={(e) => set("pros", e.target.value)} rows={4} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>CONS (one per line)</label>
-            <textarea value={form.cons} onChange={(e) => set("cons", e.target.value)} rows={4} className={inputClass} />
+            <label htmlFor="opp-cons" className={labelClass}>CONS (one per line)</label>
+            <textarea id="opp-cons" value={form.cons} onChange={(e) => set("cons", e.target.value)} rows={4} className={inputClass} />
           </div>
         </div>
         <div>
-          <label className={labelClass}>KEY RISKS (one per line)</label>
-          <textarea value={form.key_risks} onChange={(e) => set("key_risks", e.target.value)} rows={3} className={inputClass} />
+          <label htmlFor="opp-risks" className={labelClass}>KEY RISKS (one per line)</label>
+          <textarea id="opp-risks" value={form.key_risks} onChange={(e) => set("key_risks", e.target.value)} rows={3} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>SOURCE URL</label>
-          <input value={form.source_url} onChange={(e) => set("source_url", e.target.value)} placeholder="https://…" className={inputClass} />
+          <label htmlFor="opp-source" className={labelClass}>SOURCE URL</label>
+          <input id="opp-source" value={form.source_url} onChange={(e) => set("source_url", e.target.value)} placeholder="https://…" className={inputClass} />
         </div>
       </div>
       <div className="flex gap-2">
