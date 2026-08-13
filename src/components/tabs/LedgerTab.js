@@ -112,22 +112,32 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
                 </tr>
               </thead>
               <tbody>
-                {monthTx.map((t) => (
+                {monthTx.map((t) => {
+                  const meta = TYPE_META[t.type] ?? { label: t.type, color: "var(--ink)" };
+                  return (
                   <tr key={t.id} className="border-b last:border-0" style={{ borderColor: "var(--line)" }}>
                     <td className="px-5 py-2 mono text-xs opacity-70">{t.date}</td>
                     <td className="px-3 py-2">
-                      <span className="text-[10px] mono px-1.5 py-0.5 rounded" style={{ background: `${TYPE_META[t.type].color}1A`, color: TYPE_META[t.type].color }}>
-                        {TYPE_META[t.type].label}
+                      <span className="text-[10px] mono px-1.5 py-0.5 rounded" style={{ background: `${meta.color}1A`, color: meta.color }}>
+                        {meta.label}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-xs">{t.category}</td>
-                    <td className="px-3 py-2 text-xs opacity-60">{t.note || "—"}</td>
-                    <td className="px-3 py-2 mono text-right" style={{ color: TYPE_META[t.type].color }}>{fmt(t.amount)}</td>
+                    <td className="px-3 py-2 text-xs opacity-60">
+                      {t.note || "—"}
+                      {t.recurring_id && (
+                        <span className="ml-1.5 text-[10px] mono px-1 py-0.5 rounded align-middle" style={{ background: "#F3ECD8", color: "var(--gold)" }}>
+                          auto
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 mono text-right" style={{ color: meta.color }}>{fmt(t.amount)}</td>
                     <td className="px-3 py-2 text-right">
                       <button onClick={() => onDelete(t.id)} className="opacity-40 hover:opacity-100"><Trash2 size={14} /></button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

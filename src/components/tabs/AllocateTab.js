@@ -9,7 +9,7 @@ const ROWS = [
   { key: "high", label: "High risk", desc: "Individual stocks, crypto", color: "var(--rust)" },
 ];
 
-export default function AllocateTab({ alloc, onUpdate }) {
+export default function AllocateTab({ alloc, onUpdate, suggestedMonthly }) {
   const allocSum = alloc.low + alloc.medium + alloc.high;
   const allocDollars = {
     low: (alloc.monthly * alloc.low) / 100,
@@ -32,6 +32,18 @@ export default function AllocateTab({ alloc, onUpdate }) {
           />
           <span className="text-xs opacity-50">/ month</span>
         </div>
+        {typeof suggestedMonthly === "number" && suggestedMonthly > 0 && suggestedMonthly !== alloc.monthly && (
+          <p className="text-xs mono opacity-70 -mt-3 mb-5">
+            Left over this month: {fmt(suggestedMonthly)}
+            <button
+              onClick={() => onUpdate("monthly", Math.max(0, Math.round(suggestedMonthly * 100) / 100))}
+              className="ml-2 underline hover:opacity-100 opacity-70"
+              style={{ color: "var(--ledger-green-soft)" }}
+            >
+              use this
+            </button>
+          </p>
+        )}
         {ROWS.map((row) => (
           <div key={row.key} className="mb-4">
             <div className="flex items-center justify-between mb-1">

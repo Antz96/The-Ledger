@@ -1,4 +1,4 @@
-export const EXPENSE_CATS = ["Housing", "Food & Groceries", "Transport", "Utilities", "Entertainment", "Health", "Shopping", "Other"];
+export const EXPENSE_CATS = ["Housing", "Rent/Mortgage", "Food & Groceries", "Transport", "Utilities", "Childcare", "Insurance", "Subscriptions", "Debt payments", "Entertainment", "Health", "Shopping", "Other"];
 export const INCOME_CATS = ["Salary", "Freelance", "Investment", "Gift", "Other"];
 export const SAVINGS_CATS = ["Emergency Fund", "Retirement", "Goal Fund", "Other"];
 
@@ -8,7 +8,9 @@ export const TYPE_META = {
   savings: { label: "Savings", color: "#B8860B", cats: SAVINGS_CATS },
 };
 
-export const PIE_COLORS = ["#2F6B4F", "#A63D40", "#B8860B", "#5B7A99", "#8C6A9C", "#C97B4A", "#6B8E6B", "#9A8C78"];
+// Order matters: adjacent pairs are tuned so neighbouring chart slices stay
+// distinguishable under colorblindness — reorder only if re-validated.
+export const PIE_COLORS = ["#237d4e", "#c98500", "#3a6fc0", "#d95926", "#199e70", "#a63d40", "#6b4ac7", "#d55181"];
 
 // Phase 1: static, same data as the prototype. Phase 2 moves this into a
 // `savings_rates` table with source_url/last_updated columns per the build plan.
@@ -47,7 +49,13 @@ export function currencySymbol() {
   return CURRENCIES.find((c) => c.code === activeCurrency)?.symbol ?? "£";
 }
 export function fmt(n) {
-  return (Number(n) || 0).toLocaleString(undefined, { style: "currency", currency: activeCurrency, maximumFractionDigits: 0 });
+  const v = Number(n) || 0;
+  // Whole amounts stay clean (£1,200); anything else shows exact pennies (£487.50).
+  const digits = Number.isInteger(v) ? 0 : 2;
+  return v.toLocaleString(undefined, {
+    style: "currency", currency: activeCurrency,
+    minimumFractionDigits: digits, maximumFractionDigits: digits,
+  });
 }
 export function todayKey() {
   const d = new Date();

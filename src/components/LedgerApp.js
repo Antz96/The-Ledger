@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Loader2, LogOut, LayoutDashboard, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, ShieldCheck,
+  Loader2, LogOut, LayoutDashboard, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, ShieldCheck, Repeat,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { monthKey, todayKey, CURRENCIES, DEFAULT_CURRENCY, setActiveCurrency } from "@/lib/ledgerConstants";
+import { materializeRecurring, claimWithoutMaterializing, monthsBetween } from "@/lib/recurringMaterializer";
+import { monthlySummary } from "@/lib/useMonthlySummary";
 import DashboardTab from "@/components/tabs/DashboardTab";
 import LedgerTab from "@/components/tabs/LedgerTab";
+import OutgoingsTab from "@/components/tabs/OutgoingsTab";
 import AllocateTab from "@/components/tabs/AllocateTab";
 import LearnTab from "@/components/tabs/LearnTab";
 import RatesTab from "@/components/tabs/RatesTab";
@@ -17,6 +20,7 @@ import { adminFetch } from "@/lib/adminApi";
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "ledger", label: "Ledger", icon: NotebookPen },
+  { id: "outgoings", label: "Outgoings", icon: Repeat },
   { id: "allocate", label: "Allocate", icon: SlidersHorizontal },
   { id: "learn", label: "Learn", icon: GraduationCap },
   { id: "rates", label: "Rates", icon: Landmark },
@@ -31,6 +35,8 @@ export default function LedgerApp({ session }) {
   const [error, setError] = useState(null);
 
   const [transactions, setTransactions] = useState([]);
+  const [recurringItems, setRecurringItems] = useState([]);
+  const [recurringClaims, setRecurringClaims] = useState([]);
   const [goal, setGoal] = useState(5000);
   const [alloc, setAlloc] = useState({ monthly: 500, low: 60, medium: 30, high: 10 });
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
@@ -69,13 +75,34 @@ export default function LedgerApp({ session }) {
       setActiveCurrency(savedCurrency);
       setCurrency(savedCurrency);
 
-      const [{ data: txRows }, { data: goalRow }, { data: allocRow }] = await Promise.all([
-        supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-        supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
-      ]);
+      const [{ data: txRows }, { data: goalRow }, { data: allocRow }, { data: recurringRows }, { data: claimRows }] =
+        await Promise.all([
+          supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
+          supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
+          supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
+          supabase.from("recurring_items").select("*").eq("user_id", user.id).order("due_day"),
+          supabase.from("recurring_materializations").select("recurring_id, month").eq("user_id", user.id),
+        ]);
 
-      setTransactions(txRows || []);
+      let allTx = txRows || [];
+      const items = recurringRows || [];
+      let claims = claimRows || [];
+      setRecurringItems(items);
+
+      // Catch up any recurring entries this month (and months missed while
+      // the app was closed). Failure here shouldn't block the app loading.
+      try {
+        const { txs: newTx, claims: newClaims } = await materializeRecurring(supabase, user.id, items, claims);
+        if (newTx.length > 0) {
+          allTx = [...newTx, ...allTx].sort((a, b) => (a.date < b.date ? 1 : -1));
+        }
+        claims = [...claims, ...newClaims];
+      } catch (matErr) {
+        setError(matErr.message || "Couldn't log recurring entries.");
+      }
+      setRecurringClaims(claims);
+
+      setTransactions(allTx);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -128,6 +155,86 @@ export default function LedgerApp({ session }) {
     setSaving(false);
   }
 
+  async function handleAddRecurring(entry) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data: item, error: insertError } = await supabase
+        .from("recurring_items")
+        .insert({ user_id: user.id, ...entry })
+        .select()
+        .single();
+      if (insertError) throw insertError;
+      setRecurringItems((prev) => [...prev, item].sort((a, b) => a.due_day - b.due_day));
+
+      // Log it for the current month right away.
+      const { txs, claims } = await materializeRecurring(supabase, user.id, [item], recurringClaims);
+      if (txs.length > 0) {
+        setTransactions((prev) => [...txs, ...prev].sort((a, b) => (a.date < b.date ? 1 : -1)));
+      }
+      setRecurringClaims((prev) => [...prev, ...claims]);
+    } catch (err) {
+      setError(err.message || "Couldn't add that recurring item.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdateRecurring(id, patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const current = recurringItems.find((i) => i.id === id);
+      const { data: item, error: updateError } = await supabase
+        .from("recurring_items")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setRecurringItems((prev) => prev.map((i) => (i.id === id ? item : i)).sort((a, b) => a.due_day - b.due_day));
+
+      if (current && !current.active && item.active) {
+        // Unpausing: mark the paused months as handled (no entries), then
+        // log the current month normally.
+        const startMonth = monthKey(item.created_at);
+        const pastMonths = monthsBetween(startMonth, todayKey()).slice(0, -1);
+        await claimWithoutMaterializing(supabase, user.id, item.id, pastMonths);
+        const { data: claimRows } = await supabase
+          .from("recurring_materializations")
+          .select("recurring_id, month")
+          .eq("user_id", user.id);
+        const claims = claimRows || [];
+        const { txs, claims: newClaims } = await materializeRecurring(supabase, user.id, [item], claims);
+        if (txs.length > 0) {
+          setTransactions((prev) => [...txs, ...prev].sort((a, b) => (a.date < b.date ? 1 : -1)));
+        }
+        setRecurringClaims([...claims, ...newClaims]);
+      }
+    } catch (err) {
+      setError(err.message || "Couldn't update that recurring item.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteRecurring(id) {
+    setSaving(true);
+    setError(null);
+    const prevItems = recurringItems;
+    setRecurringItems((items) => items.filter((i) => i.id !== id));
+    const { error: deleteError } = await supabase.from("recurring_items").delete().eq("id", id);
+    if (deleteError) {
+      setError(deleteError.message);
+      setRecurringItems(prevItems);
+    } else {
+      // DB nulls recurring_id via ON DELETE SET NULL; mirror it locally.
+      setTransactions((prev) => prev.map((t) => (t.recurring_id === id ? { ...t, recurring_id: null } : t)));
+      setRecurringClaims((prev) => prev.filter((c) => c.recurring_id !== id));
+    }
+    setSaving(false);
+  }
+
   async function handleGoalSave(nextGoal) {
     setGoal(nextGoal);
     setSaving(true);
@@ -174,6 +281,7 @@ export default function LedgerApp({ session }) {
   }
 
   const displayName = profile?.display_name || user.email;
+  const currentLeftOver = useMemo(() => monthlySummary(transactions, todayKey()).leftOver, [transactions]);
 
   if (loading) {
     return (
@@ -241,10 +349,12 @@ export default function LedgerApp({ session }) {
         {tab === "dashboard" && (
           <DashboardTab
             transactions={transactions}
+            recurringItems={recurringItems}
             goal={goal}
             onGoalSave={handleGoalSave}
             activeMonth={activeMonth}
             setActiveMonth={setActiveMonth}
+            onGoToOutgoings={() => setTab("outgoings")}
           />
         )}
         {tab === "ledger" && (
@@ -256,7 +366,15 @@ export default function LedgerApp({ session }) {
             onDelete={handleDeleteTransaction}
           />
         )}
-        {tab === "allocate" && <AllocateTab alloc={alloc} onUpdate={handleAllocUpdate} />}
+        {tab === "outgoings" && (
+          <OutgoingsTab
+            items={recurringItems}
+            onAdd={handleAddRecurring}
+            onUpdate={handleUpdateRecurring}
+            onDelete={handleDeleteRecurring}
+          />
+        )}
+        {tab === "allocate" && <AllocateTab alloc={alloc} onUpdate={handleAllocUpdate} suggestedMonthly={currentLeftOver} />}
         {tab === "learn" && <LearnTab />}
         {tab === "rates" && <RatesTab />}
         {tab === "admin" && isAdmin && <AdminTab />}

@@ -41,3 +41,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input[type="range"] {
   accent-color: var(--ledger-green-soft);
 }
+
+/* Motion vocabulary — dashboard cards rise in, flow-band segments grow. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.rise-in {
+  animation: rise-in 0.45s ease both;
+}
+.flow-seg {
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise-in { animation: none; }
+  .flow-seg { transition: none; }
+}
