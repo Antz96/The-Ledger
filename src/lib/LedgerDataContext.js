@@ -22,6 +22,8 @@ export function LedgerDataProvider({ session, children }) {
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [activeMonth, setActiveMonth] = useState(todayKey());
   const [rates, setRates] = useState([]);
+  const [assets, setAssets] = useState([]);
+  const [liabilities, setLiabilities] = useState([]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -45,15 +47,20 @@ export function LedgerDataProvider({ session, children }) {
       setActiveCurrency(savedCurrency);
       setCurrency(savedCurrency);
 
-      const [{ data: txRows }, { data: goalRow }, { data: allocRow }, { data: rateRows }] = await Promise.all([
-        supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-        supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("savings_rates").select("*").order("apy_pct", { ascending: false }),
-      ]);
+      const [{ data: txRows }, { data: goalRow }, { data: allocRow }, { data: rateRows }, { data: assetRows }, { data: liabilityRows }] =
+        await Promise.all([
+          supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
+          supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
+          supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
+          supabase.from("savings_rates").select("*").order("apy_pct", { ascending: false }),
+          supabase.from("assets").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+          supabase.from("liabilities").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+        ]);
 
       setTransactions(txRows || []);
       setRates(rateRows || []);
+      setAssets(assetRows || []);
+      setLiabilities(liabilityRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -181,6 +188,106 @@ export function LedgerDataProvider({ session, children }) {
     setSaving(false);
   }
 
+  async function handleAddAsset(asset) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: insertError } = await supabase
+        .from("assets")
+        .insert({ user_id: user.id, ...asset })
+        .select()
+        .single();
+      if (insertError) throw insertError;
+      setAssets((prev) => [...prev, data]);
+    } catch (err) {
+      setError(err.message || "Couldn't add that asset.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdateAsset(id, patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: updateError } = await supabase
+        .from("assets")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setAssets((prev) => prev.map((a) => (a.id === id ? data : a)));
+    } catch (err) {
+      setError(err.message || "Couldn't update that asset.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteAsset(id) {
+    setSaving(true);
+    setError(null);
+    const prev = assets;
+    setAssets((a) => a.filter((row) => row.id !== id));
+    const { error: deleteError } = await supabase.from("assets").delete().eq("id", id);
+    if (deleteError) {
+      setError(deleteError.message);
+      setAssets(prev);
+    }
+    setSaving(false);
+  }
+
+  async function handleAddLiability(liability) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: insertError } = await supabase
+        .from("liabilities")
+        .insert({ user_id: user.id, ...liability })
+        .select()
+        .single();
+      if (insertError) throw insertError;
+      setLiabilities((prev) => [...prev, data]);
+    } catch (err) {
+      setError(err.message || "Couldn't add that liability.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdateLiability(id, patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: updateError } = await supabase
+        .from("liabilities")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setLiabilities((prev) => prev.map((l) => (l.id === id ? data : l)));
+    } catch (err) {
+      setError(err.message || "Couldn't update that liability.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteLiability(id) {
+    setSaving(true);
+    setError(null);
+    const prev = liabilities;
+    setLiabilities((l) => l.filter((row) => row.id !== id));
+    const { error: deleteError } = await supabase.from("liabilities").delete().eq("id", id);
+    if (deleteError) {
+      setError(deleteError.message);
+      setLiabilities(prev);
+    }
+    setSaving(false);
+  }
+
   async function handleCurrencyChange(code) {
     setActiveCurrency(code);
     setCurrency(code);
@@ -212,6 +319,8 @@ export function LedgerDataProvider({ session, children }) {
     activeMonth,
     setActiveMonth,
     rates,
+    assets,
+    liabilities,
     handleAddTransaction,
     handleDeleteTransaction,
     handleGoalSave,
@@ -219,6 +328,12 @@ export function LedgerDataProvider({ session, children }) {
     handleAddRate,
     handleUpdateRate,
     handleDeleteRate,
+    handleAddAsset,
+    handleUpdateAsset,
+    handleDeleteAsset,
+    handleAddLiability,
+    handleUpdateLiability,
+    handleDeleteLiability,
     handleCurrencyChange,
     handleSignOut,
   };
