@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
 import { fmt } from "@/lib/ledgerConstants";
 import { EXPLORER_CATEGORIES, RISK_FILTERS } from "@/lib/explorerCategories";
@@ -186,7 +187,9 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
   return (
     <li className="text-xs flex items-start justify-between gap-2">
       <div>
-        <span className="font-medium">{opportunity.name}</span>
+        <Link href={`/explorer/${opportunity.id}`} className="font-medium hover:underline" style={{ color: "var(--ink)" }}>
+          {opportunity.name}
+        </Link>
         <span
           className="text-[10px] mono ml-1.5 px-1 py-0.5 rounded"
           style={{ background: `${RISK_COLOR[opportunity.risk_level]}1A`, color: RISK_COLOR[opportunity.risk_level] }}
