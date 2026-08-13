@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, Wallet, Compass, Telescope, NotebookPen, SlidersHorizontal, GraduationCap, Landmark } from "lucide-react";
+import { LogOut, LayoutDashboard, Wallet, Compass, Target, Telescope, NotebookPen, SlidersHorizontal, GraduationCap, Landmark } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
 
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/assets", label: "Assets", icon: Wallet },
   { href: "/wealth-map", label: "Wealth Map", icon: Compass },
+  { href: "/goals", label: "Goals", icon: Target },
   { href: "/explorer", label: "Explorer", icon: Telescope },
   { href: "/ledger", label: "Ledger", icon: NotebookPen },
   { href: "/allocate", label: "Allocate", icon: SlidersHorizontal },
