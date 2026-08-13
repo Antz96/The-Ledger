@@ -24,6 +24,7 @@ export function LedgerDataProvider({ session, children }) {
   const [rates, setRates] = useState([]);
   const [assets, setAssets] = useState([]);
   const [liabilities, setLiabilities] = useState([]);
+  const [opportunities, setOpportunities] = useState([]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -47,20 +48,29 @@ export function LedgerDataProvider({ session, children }) {
       setActiveCurrency(savedCurrency);
       setCurrency(savedCurrency);
 
-      const [{ data: txRows }, { data: goalRow }, { data: allocRow }, { data: rateRows }, { data: assetRows }, { data: liabilityRows }] =
-        await Promise.all([
-          supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
-          supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
-          supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
-          supabase.from("savings_rates").select("*").order("apy_pct", { ascending: false }),
-          supabase.from("assets").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
-          supabase.from("liabilities").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
-        ]);
+      const [
+        { data: txRows },
+        { data: goalRow },
+        { data: allocRow },
+        { data: rateRows },
+        { data: assetRows },
+        { data: liabilityRows },
+        { data: opportunityRows },
+      ] = await Promise.all([
+        supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
+        supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("allocations").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("savings_rates").select("*").order("apy_pct", { ascending: false }),
+        supabase.from("assets").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+        supabase.from("liabilities").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+        supabase.from("opportunities").select("*").order("created_at", { ascending: true }),
+      ]);
 
       setTransactions(txRows || []);
       setRates(rateRows || []);
       setAssets(assetRows || []);
       setLiabilities(liabilityRows || []);
+      setOpportunities(opportunityRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -288,6 +298,52 @@ export function LedgerDataProvider({ session, children }) {
     setSaving(false);
   }
 
+  async function handleAddOpportunity(opportunity) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: insertError } = await supabase.from("opportunities").insert(opportunity).select().single();
+      if (insertError) throw insertError;
+      setOpportunities((prev) => [...prev, data]);
+    } catch (err) {
+      setError(err.message || "Couldn't add that opportunity.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdateOpportunity(id, patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: updateError } = await supabase
+        .from("opportunities")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setOpportunities((prev) => prev.map((o) => (o.id === id ? data : o)));
+    } catch (err) {
+      setError(err.message || "Couldn't update that opportunity.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteOpportunity(id) {
+    setSaving(true);
+    setError(null);
+    const prev = opportunities;
+    setOpportunities((o) => o.filter((row) => row.id !== id));
+    const { error: deleteError } = await supabase.from("opportunities").delete().eq("id", id);
+    if (deleteError) {
+      setError(deleteError.message);
+      setOpportunities(prev);
+    }
+    setSaving(false);
+  }
+
   async function handleCurrencyChange(code) {
     setActiveCurrency(code);
     setCurrency(code);
@@ -321,6 +377,7 @@ export function LedgerDataProvider({ session, children }) {
     rates,
     assets,
     liabilities,
+    opportunities,
     handleAddTransaction,
     handleDeleteTransaction,
     handleGoalSave,
@@ -334,6 +391,9 @@ export function LedgerDataProvider({ session, children }) {
     handleAddLiability,
     handleUpdateLiability,
     handleDeleteLiability,
+    handleAddOpportunity,
+    handleUpdateOpportunity,
+    handleDeleteOpportunity,
     handleCurrencyChange,
     handleSignOut,
   };
