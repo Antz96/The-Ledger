@@ -25,6 +25,7 @@ export function LedgerDataProvider({ session, children }) {
   const [assets, setAssets] = useState([]);
   const [liabilities, setLiabilities] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
+  const [financialGoals, setFinancialGoals] = useState([]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -56,6 +57,7 @@ export function LedgerDataProvider({ session, children }) {
         { data: assetRows },
         { data: liabilityRows },
         { data: opportunityRows },
+        { data: financialGoalRows },
       ] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
         supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
@@ -64,6 +66,7 @@ export function LedgerDataProvider({ session, children }) {
         supabase.from("assets").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
         supabase.from("liabilities").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
         supabase.from("opportunities").select("*").order("created_at", { ascending: true }),
+        supabase.from("financial_goals").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
       ]);
 
       setTransactions(txRows || []);
@@ -71,6 +74,7 @@ export function LedgerDataProvider({ session, children }) {
       setAssets(assetRows || []);
       setLiabilities(liabilityRows || []);
       setOpportunities(opportunityRows || []);
+      setFinancialGoals(financialGoalRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -344,6 +348,56 @@ export function LedgerDataProvider({ session, children }) {
     setSaving(false);
   }
 
+  async function handleAddFinancialGoal(goal) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: insertError } = await supabase
+        .from("financial_goals")
+        .insert({ user_id: user.id, ...goal })
+        .select()
+        .single();
+      if (insertError) throw insertError;
+      setFinancialGoals((prev) => [...prev, data]);
+    } catch (err) {
+      setError(err.message || "Couldn't add that goal.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdateFinancialGoal(id, patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: updateError } = await supabase
+        .from("financial_goals")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setFinancialGoals((prev) => prev.map((g) => (g.id === id ? data : g)));
+    } catch (err) {
+      setError(err.message || "Couldn't update that goal.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteFinancialGoal(id) {
+    setSaving(true);
+    setError(null);
+    const prev = financialGoals;
+    setFinancialGoals((g) => g.filter((row) => row.id !== id));
+    const { error: deleteError } = await supabase.from("financial_goals").delete().eq("id", id);
+    if (deleteError) {
+      setError(deleteError.message);
+      setFinancialGoals(prev);
+    }
+    setSaving(false);
+  }
+
   async function handleCurrencyChange(code) {
     setActiveCurrency(code);
     setCurrency(code);
@@ -378,6 +432,7 @@ export function LedgerDataProvider({ session, children }) {
     assets,
     liabilities,
     opportunities,
+    financialGoals,
     handleAddTransaction,
     handleDeleteTransaction,
     handleGoalSave,
@@ -394,6 +449,9 @@ export function LedgerDataProvider({ session, children }) {
     handleAddOpportunity,
     handleUpdateOpportunity,
     handleDeleteOpportunity,
+    handleAddFinancialGoal,
+    handleUpdateFinancialGoal,
+    handleDeleteFinancialGoal,
     handleCurrencyChange,
     handleSignOut,
   };
