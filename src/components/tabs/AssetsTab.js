@@ -8,6 +8,19 @@ import SummaryCard from "@/components/ui/SummaryCard";
 const ASSET_CATEGORIES = ["Cash", "Investments", "Pension", "Property", "Crypto", "Other"];
 const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"];
 
+// What job is this money doing? (blueprint section 6) Defaults from category,
+// but always editable — the whole point is that "Investments" could be a
+// Growth fund or an Income bond, and the person adding it knows which.
+const PURPOSES = ["Safety", "Growth", "Income", "Speculation"];
+const CATEGORY_PURPOSE_DEFAULT = {
+  Cash: "Safety",
+  Investments: "Growth",
+  Pension: "Growth",
+  Property: "Income",
+  Crypto: "Speculation",
+  Other: "Growth",
+};
+
 export default function AssetsTab({
   assets,
   liabilities,
@@ -49,6 +62,7 @@ export default function AssetsTab({
         onUpdate={onUpdateAsset}
         onDelete={onDeleteAsset}
         emptyText="No assets added yet."
+        withPurpose
       />
 
       <Section
@@ -67,7 +81,7 @@ export default function AssetsTab({
   );
 }
 
-function Section({ title, icon, items, categories, valueField, valueLabel, onAdd, onUpdate, onDelete, emptyText }) {
+function Section({ title, icon, items, categories, valueField, valueLabel, onAdd, onUpdate, onDelete, emptyText, withPurpose }) {
   return (
     <div className="ledger-card overflow-hidden">
       <p className="serif text-sm tracking-wide opacity-80 px-4 sm:px-5 pt-4 pb-2 flex items-center gap-1.5">
@@ -82,24 +96,33 @@ function Section({ title, icon, items, categories, valueField, valueLabel, onAdd
               <tr className="text-[10px] mono opacity-50 border-t border-b" style={{ borderColor: "var(--line)" }}>
                 <th className="text-left px-5 py-2 font-normal">NAME</th>
                 <th className="text-left px-3 py-2 font-normal">CATEGORY</th>
+                {withPurpose && <th className="text-left px-3 py-2 font-normal">PURPOSE</th>}
                 <th className="text-right px-3 py-2 font-normal">{valueLabel}</th>
                 <th className="px-3 py-2"></th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <Row key={item.id} item={item} categories={categories} valueField={valueField} onUpdate={onUpdate} onDelete={onDelete} />
+                <Row
+                  key={item.id}
+                  item={item}
+                  categories={categories}
+                  valueField={valueField}
+                  onUpdate={onUpdate}
+                  onDelete={onDelete}
+                  withPurpose={withPurpose}
+                />
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <AddForm categories={categories} valueField={valueField} valueLabel={valueLabel} onAdd={onAdd} />
+      <AddForm categories={categories} valueField={valueField} valueLabel={valueLabel} onAdd={onAdd} withPurpose={withPurpose} />
     </div>
   );
 }
 
-function Row({ item, categories, valueField, onUpdate, onDelete }) {
+function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item);
 
@@ -122,6 +145,17 @@ function Row({ item, categories, valueField, onUpdate, onDelete }) {
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </td>
+        {withPurpose && (
+          <td className="px-3 py-2">
+            <select
+              value={draft.purpose}
+              onChange={(e) => setDraft((d) => ({ ...d, purpose: e.target.value }))}
+              className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            >
+              {PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </td>
+        )}
         <td className="px-3 py-2">
           <input
             type="number" min="0" step="0.01"
@@ -133,11 +167,13 @@ function Row({ item, categories, valueField, onUpdate, onDelete }) {
         <td className="px-3 py-2 text-right whitespace-nowrap">
           <button
             onClick={() => {
-              onUpdate(item.id, {
+              const patch = {
                 name: draft.name.trim(),
                 category: draft.category,
                 [valueField]: parseFloat(draft[valueField]) || 0,
-              });
+              };
+              if (withPurpose) patch.purpose = draft.purpose;
+              onUpdate(item.id, patch);
               setEditing(false);
             }}
             className="text-xs px-2 py-1 rounded mr-1"
@@ -157,6 +193,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete }) {
     <tr className="border-b last:border-0" style={{ borderColor: "var(--line)" }}>
       <td className="px-5 py-2.5 text-sm">{item.name}</td>
       <td className="px-3 py-2.5 text-xs opacity-70">{item.category}</td>
+      {withPurpose && <td className="px-3 py-2.5 text-xs opacity-70">{item.purpose}</td>}
       <td className="px-3 py-2.5 mono text-right">{fmt(item[valueField])}</td>
       <td className="px-3 py-2.5 text-right whitespace-nowrap">
         <button onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 mr-2"><Pencil size={13} /></button>
@@ -166,10 +203,14 @@ function Row({ item, categories, valueField, onUpdate, onDelete }) {
   );
 }
 
-function AddForm({ categories, valueField, valueLabel, onAdd }) {
-  const empty = { name: "", category: categories[0], [valueField]: "" };
+function AddForm({ categories, valueField, valueLabel, onAdd, withPurpose }) {
+  const empty = { name: "", category: categories[0], purpose: CATEGORY_PURPOSE_DEFAULT[categories[0]] || "Growth", [valueField]: "" };
   const [form, setForm] = useState(empty);
   const [error, setError] = useState("");
+
+  function handleCategoryChange(category) {
+    setForm((f) => ({ ...f, category, purpose: CATEGORY_PURPOSE_DEFAULT[category] || f.purpose }));
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -177,12 +218,18 @@ function AddForm({ categories, valueField, valueLabel, onAdd }) {
     if (!form.name.trim()) return setError("Enter a name.");
     const amt = parseFloat(form[valueField]);
     if (Number.isNaN(amt) || amt < 0) return setError(`Enter a valid ${valueLabel.toLowerCase()}.`);
-    onAdd({ name: form.name.trim(), category: form.category, [valueField]: amt });
+    const entry = { name: form.name.trim(), category: form.category, [valueField]: amt };
+    if (withPurpose) entry.purpose = form.purpose;
+    onAdd(entry);
     setForm(empty);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end px-4 sm:px-5 py-4 border-t" style={{ borderColor: "var(--line)" }}>
+    <form
+      onSubmit={handleSubmit}
+      className={`grid grid-cols-2 ${withPurpose ? "sm:grid-cols-5" : "sm:grid-cols-4"} gap-3 items-end px-4 sm:px-5 py-4 border-t`}
+      style={{ borderColor: "var(--line)" }}
+    >
       <div>
         <label className="block text-[10px] mono opacity-60 mb-1">NAME</label>
         <input
@@ -196,12 +243,24 @@ function AddForm({ categories, valueField, valueLabel, onAdd }) {
         <label className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
         <select
           value={form.category}
-          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+          onChange={(e) => handleCategoryChange(e.target.value)}
           className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
         >
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
+      {withPurpose && (
+        <div>
+          <label className="block text-[10px] mono opacity-60 mb-1">PURPOSE</label>
+          <select
+            value={form.purpose}
+            onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))}
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          >
+            {PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+      )}
       <div>
         <label className="block text-[10px] mono opacity-60 mb-1">{valueLabel}</label>
         <input
@@ -215,7 +274,7 @@ function AddForm({ categories, valueField, valueLabel, onAdd }) {
       <button type="submit" className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
         <Plus size={15} /> Add
       </button>
-      {error && <p className="text-xs col-span-2 sm:col-span-4" style={{ color: "var(--rust)" }}>{error}</p>}
+      {error && <p className="text-xs col-span-2 sm:col-span-5" style={{ color: "var(--rust)" }}>{error}</p>}
     </form>
   );
 }
