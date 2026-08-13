@@ -42,6 +42,23 @@ export const CREDIT_FACTORS = [
   },
 ];
 
+// Section 26.5 — qualitative, not tied to a £ amount or date, so these are
+// tracked as a simple selection rather than forced into the financial_goals
+// target/date shape.
+export const CREDIT_GOALS = [
+  { id: "prepare-mortgage", label: "Prepare to apply for a mortgage." },
+  { id: "improve-profile", label: "Improve overall credit profile." },
+  { id: "reduce-revolving-debt", label: "Reduce revolving debt." },
+  { id: "lower-utilisation", label: "Lower credit utilisation." },
+  { id: "clear-balances", label: "Clear outstanding balances." },
+  { id: "correct-inaccurate-info", label: "Correct inaccurate information." },
+  { id: "avoid-unnecessary-hard-searches", label: "Avoid unnecessary hard searches." },
+  { id: "build-payment-history", label: "Build a longer positive payment history." },
+];
+
+export const PAYMENT_HISTORY_OPTIONS = ["All on time", "Some missed payments", "Not sure"];
+export const ELECTORAL_ROLL_OPTIONS = ["Registered", "Not registered", "Not sure"];
+
 export const CREDIT_ACTIONS = [
   { id: "check-reports", label: "Check all three UK credit reports.", why: "Reports can differ between agencies, so checking each gives a fuller picture of what lenders might see." },
   { id: "confirm-address", label: "Confirm address history is correct.", why: "Incorrect or missing address history can make it harder for lenders to verify identity." },

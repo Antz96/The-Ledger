@@ -27,6 +27,8 @@ export function LedgerDataProvider({ session, children }) {
   const [opportunities, setOpportunities] = useState([]);
   const [financialGoals, setFinancialGoals] = useState([]);
   const [creditActionProgress, setCreditActionProgress] = useState([]);
+  const [creditProfile, setCreditProfile] = useState(null);
+  const [creditGoalSelections, setCreditGoalSelections] = useState([]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -60,6 +62,8 @@ export function LedgerDataProvider({ session, children }) {
         { data: opportunityRows },
         { data: financialGoalRows },
         { data: creditActionRows },
+        { data: creditProfileRow },
+        { data: creditGoalRows },
       ] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
         supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
@@ -70,6 +74,8 @@ export function LedgerDataProvider({ session, children }) {
         supabase.from("opportunities").select("*").order("created_at", { ascending: true }),
         supabase.from("financial_goals").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
         supabase.from("credit_action_progress").select("*").eq("user_id", user.id),
+        supabase.from("credit_profile").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("credit_goal_selections").select("*").eq("user_id", user.id),
       ]);
 
       setTransactions(txRows || []);
@@ -79,6 +85,8 @@ export function LedgerDataProvider({ session, children }) {
       setOpportunities(opportunityRows || []);
       setFinancialGoals(financialGoalRows || []);
       setCreditActionProgress(creditActionRows || []);
+      setCreditProfile(creditProfileRow || null);
+      setCreditGoalSelections(creditGoalRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -427,6 +435,49 @@ export function LedgerDataProvider({ session, children }) {
     }
   }
 
+  async function handleSaveCreditProfile(patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: upsertError } = await supabase
+        .from("credit_profile")
+        .upsert({ user_id: user.id, ...patch, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+        .select()
+        .single();
+      if (upsertError) throw upsertError;
+      setCreditProfile(data);
+    } catch (err) {
+      setError(err.message || "Couldn't save your credit profile.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleToggleCreditGoal(goalId) {
+    setSaving(true);
+    setError(null);
+    const existing = creditGoalSelections.find((row) => row.goal_id === goalId);
+    try {
+      if (existing) {
+        setCreditGoalSelections((prev) => prev.filter((row) => row.goal_id !== goalId));
+        const { error: deleteError } = await supabase.from("credit_goal_selections").delete().eq("id", existing.id);
+        if (deleteError) throw deleteError;
+      } else {
+        const { data, error: insertError } = await supabase
+          .from("credit_goal_selections")
+          .insert({ user_id: user.id, goal_id: goalId })
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        setCreditGoalSelections((prev) => [...prev, data]);
+      }
+    } catch (err) {
+      setError(err.message || "Couldn't update that goal.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleCurrencyChange(code) {
     setActiveCurrency(code);
     setCurrency(code);
@@ -463,6 +514,8 @@ export function LedgerDataProvider({ session, children }) {
     opportunities,
     financialGoals,
     creditActionProgress,
+    creditProfile,
+    creditGoalSelections,
     handleAddTransaction,
     handleDeleteTransaction,
     handleGoalSave,
@@ -483,6 +536,8 @@ export function LedgerDataProvider({ session, children }) {
     handleUpdateFinancialGoal,
     handleDeleteFinancialGoal,
     handleToggleCreditAction,
+    handleSaveCreditProfile,
+    handleToggleCreditGoal,
     handleCurrencyChange,
     handleSignOut,
   };
