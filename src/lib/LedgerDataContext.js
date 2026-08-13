@@ -29,6 +29,7 @@ export function LedgerDataProvider({ session, children }) {
   const [creditActionProgress, setCreditActionProgress] = useState([]);
   const [creditProfile, setCreditProfile] = useState(null);
   const [creditGoalSelections, setCreditGoalSelections] = useState([]);
+  const [articles, setArticles] = useState([]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -64,6 +65,7 @@ export function LedgerDataProvider({ session, children }) {
         { data: creditActionRows },
         { data: creditProfileRow },
         { data: creditGoalRows },
+        { data: articleRows },
       ] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
         supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
@@ -76,6 +78,7 @@ export function LedgerDataProvider({ session, children }) {
         supabase.from("credit_action_progress").select("*").eq("user_id", user.id),
         supabase.from("credit_profile").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("credit_goal_selections").select("*").eq("user_id", user.id),
+        supabase.from("articles").select("*").order("published_at", { ascending: false }),
       ]);
 
       setTransactions(txRows || []);
@@ -87,6 +90,7 @@ export function LedgerDataProvider({ session, children }) {
       setCreditActionProgress(creditActionRows || []);
       setCreditProfile(creditProfileRow || null);
       setCreditGoalSelections(creditGoalRows || []);
+      setArticles(articleRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -478,6 +482,31 @@ export function LedgerDataProvider({ session, children }) {
     }
   }
 
+  async function handleSubmitAssessment(responses, tags, goalNote) {
+    setSaving(true);
+    setError(null);
+    try {
+      await supabase.from("assessment_responses").delete().eq("user_id", user.id);
+      const { error: insertError } = await supabase
+        .from("assessment_responses")
+        .insert(responses.map((r) => ({ user_id: user.id, ...r })));
+      if (insertError) throw insertError;
+
+      const { data, error: updateError } = await supabase
+        .from("profiles")
+        .update({ tags, goal_note: goalNote, onboarding_complete: true })
+        .eq("id", user.id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      setProfile(data);
+    } catch (err) {
+      setError(err.message || "Couldn't save your answers.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleCurrencyChange(code) {
     setActiveCurrency(code);
     setCurrency(code);
@@ -520,6 +549,7 @@ export function LedgerDataProvider({ session, children }) {
     creditActionProgress,
     creditProfile,
     creditGoalSelections,
+    articles,
     handleAddTransaction,
     handleDeleteTransaction,
     handleGoalSave,
@@ -542,6 +572,7 @@ export function LedgerDataProvider({ session, children }) {
     handleToggleCreditAction,
     handleSaveCreditProfile,
     handleToggleCreditGoal,
+    handleSubmitAssessment,
     handleCurrencyChange,
     handleSignOut,
     clearError,
