@@ -76,14 +76,16 @@ function GoalCard({ goal, onUpdate, onDelete }) {
     return (
       <div className="ledger-card p-4 sm:p-5 space-y-2">
         <input
+          aria-label={`Name for ${goal.name}`}
           value={draft.name}
           onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
           className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
         />
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">TARGET</label>
+            <label htmlFor={`goal-target-${goal.id}`} className="block text-[10px] mono opacity-60 mb-1">TARGET</label>
             <input
+              id={`goal-target-${goal.id}`}
               type="number" min="0" step="0.01"
               value={draft.target_amount}
               onChange={(e) => setDraft((d) => ({ ...d, target_amount: e.target.value }))}
@@ -91,8 +93,9 @@ function GoalCard({ goal, onUpdate, onDelete }) {
             />
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">STARTING</label>
+            <label htmlFor={`goal-starting-${goal.id}`} className="block text-[10px] mono opacity-60 mb-1">STARTING</label>
             <input
+              id={`goal-starting-${goal.id}`}
               type="number" min="0" step="0.01"
               value={draft.starting_amount}
               onChange={(e) => setDraft((d) => ({ ...d, starting_amount: e.target.value }))}
@@ -100,8 +103,9 @@ function GoalCard({ goal, onUpdate, onDelete }) {
             />
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">MONTHLY</label>
+            <label htmlFor={`goal-monthly-${goal.id}`} className="block text-[10px] mono opacity-60 mb-1">MONTHLY</label>
             <input
+              id={`goal-monthly-${goal.id}`}
               type="number" min="0" step="0.01"
               value={draft.monthly_contribution}
               onChange={(e) => setDraft((d) => ({ ...d, monthly_contribution: e.target.value }))}
@@ -109,8 +113,9 @@ function GoalCard({ goal, onUpdate, onDelete }) {
             />
           </div>
           <div>
-            <label className="block text-[10px] mono opacity-60 mb-1">TARGET DATE</label>
+            <label htmlFor={`goal-date-${goal.id}`} className="block text-[10px] mono opacity-60 mb-1">TARGET DATE</label>
             <input
+              id={`goal-date-${goal.id}`}
               type="date"
               value={draft.target_date}
               onChange={(e) => setDraft((d) => ({ ...d, target_date: e.target.value }))}
@@ -130,12 +135,13 @@ function GoalCard({ goal, onUpdate, onDelete }) {
               });
               setEditing(false);
             }}
+            aria-label={`Save changes to ${goal.name}`}
             className="text-xs px-3 py-1.5 rounded"
             style={{ background: "var(--ledger-green)", color: "#F7F3E8" }}
           >
             Save
           </button>
-          <button onClick={() => setEditing(false)} className="text-xs px-2 py-1.5 opacity-50 hover:opacity-100">
+          <button onClick={() => setEditing(false)} aria-label="Cancel editing" className="text-xs px-2 py-1.5 opacity-50 hover:opacity-100">
             <X size={14} />
           </button>
         </div>
@@ -148,8 +154,8 @@ function GoalCard({ goal, onUpdate, onDelete }) {
       <div className="flex items-start justify-between mb-2">
         <p className="serif text-sm">{goal.name}</p>
         <div className="flex gap-1.5">
-          <button onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100"><Pencil size={13} /></button>
-          <button onClick={() => onDelete(goal.id)} className="opacity-40 hover:opacity-100"><Trash2 size={13} /></button>
+          <button onClick={() => setEditing(true)} aria-label={`Edit ${goal.name}`} className="opacity-40 hover:opacity-100"><Pencil size={13} /></button>
+          <button onClick={() => onDelete(goal.id)} aria-label={`Delete ${goal.name}`} className="opacity-40 hover:opacity-100"><Trash2 size={13} /></button>
         </div>
       </div>
 
@@ -209,8 +215,9 @@ function AddGoalForm({ onAdd }) {
       <p className="serif text-sm tracking-wide opacity-80 mb-3 flex items-center gap-1.5"><Plus size={15} /> Add a goal</p>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="col-span-2 sm:col-span-3">
-          <label className="block text-[10px] mono opacity-60 mb-1">NAME</label>
+          <label htmlFor="new-goal-name" className="block text-[10px] mono opacity-60 mb-1">NAME</label>
           <input
+            id="new-goal-name"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="e.g. Emergency fund"
@@ -218,8 +225,9 @@ function AddGoalForm({ onAdd }) {
           />
         </div>
         <div>
-          <label className="block text-[10px] mono opacity-60 mb-1">TARGET</label>
+          <label htmlFor="new-goal-target" className="block text-[10px] mono opacity-60 mb-1">TARGET</label>
           <input
+            id="new-goal-target"
             type="number" min="0" step="0.01"
             value={form.target_amount}
             onChange={(e) => setForm((f) => ({ ...f, target_amount: e.target.value }))}
@@ -228,8 +236,9 @@ function AddGoalForm({ onAdd }) {
           />
         </div>
         <div>
-          <label className="block text-[10px] mono opacity-60 mb-1">STARTING</label>
+          <label htmlFor="new-goal-starting" className="block text-[10px] mono opacity-60 mb-1">STARTING</label>
           <input
+            id="new-goal-starting"
             type="number" min="0" step="0.01"
             value={form.starting_amount}
             onChange={(e) => setForm((f) => ({ ...f, starting_amount: e.target.value }))}
@@ -238,8 +247,9 @@ function AddGoalForm({ onAdd }) {
           />
         </div>
         <div>
-          <label className="block text-[10px] mono opacity-60 mb-1">MONTHLY</label>
+          <label htmlFor="new-goal-monthly" className="block text-[10px] mono opacity-60 mb-1">MONTHLY</label>
           <input
+            id="new-goal-monthly"
             type="number" min="0" step="0.01"
             value={form.monthly_contribution}
             onChange={(e) => setForm((f) => ({ ...f, monthly_contribution: e.target.value }))}
@@ -248,8 +258,9 @@ function AddGoalForm({ onAdd }) {
           />
         </div>
         <div className="col-span-2 sm:col-span-3">
-          <label className="block text-[10px] mono opacity-60 mb-1">TARGET DATE (optional)</label>
+          <label htmlFor="new-goal-date" className="block text-[10px] mono opacity-60 mb-1">TARGET DATE (optional)</label>
           <input
+            id="new-goal-date"
             type="date"
             value={form.target_date}
             onChange={(e) => setForm((f) => ({ ...f, target_date: e.target.value }))}

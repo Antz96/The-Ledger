@@ -53,6 +53,7 @@ export default function AssetsTab({
 
       <Section
         title="Assets"
+        idPrefix="asset"
         icon={<Landmark size={15} style={{ color: "var(--ledger-green-soft)" }} />}
         items={assets}
         categories={ASSET_CATEGORIES}
@@ -67,6 +68,7 @@ export default function AssetsTab({
 
       <Section
         title="Liabilities"
+        idPrefix="liability"
         icon={<TrendingDown size={15} style={{ color: "var(--rust)" }} />}
         items={liabilities}
         categories={LIABILITY_CATEGORIES}
@@ -81,7 +83,7 @@ export default function AssetsTab({
   );
 }
 
-function Section({ title, icon, items, categories, valueField, valueLabel, onAdd, onUpdate, onDelete, emptyText, withPurpose }) {
+function Section({ title, idPrefix, icon, items, categories, valueField, valueLabel, onAdd, onUpdate, onDelete, emptyText, withPurpose }) {
   return (
     <div className="ledger-card overflow-hidden">
       <p className="serif text-sm tracking-wide opacity-80 px-4 sm:px-5 pt-4 pb-2 flex items-center gap-1.5">
@@ -117,7 +119,7 @@ function Section({ title, icon, items, categories, valueField, valueLabel, onAdd
           </table>
         </div>
       )}
-      <AddForm categories={categories} valueField={valueField} valueLabel={valueLabel} onAdd={onAdd} withPurpose={withPurpose} />
+      <AddForm idPrefix={idPrefix} categories={categories} valueField={valueField} valueLabel={valueLabel} onAdd={onAdd} withPurpose={withPurpose} />
     </div>
   );
 }
@@ -131,6 +133,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
       <tr className="border-b" style={{ borderColor: "var(--line)" }}>
         <td className="px-5 py-2">
           <input
+            aria-label={`Name for ${item.name}`}
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
             className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -138,6 +141,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
         </td>
         <td className="px-3 py-2">
           <select
+            aria-label={`Category for ${item.name}`}
             value={draft.category}
             onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
             className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -148,6 +152,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
         {withPurpose && (
           <td className="px-3 py-2">
             <select
+              aria-label={`Purpose for ${item.name}`}
               value={draft.purpose}
               onChange={(e) => setDraft((d) => ({ ...d, purpose: e.target.value }))}
               className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -158,6 +163,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
         )}
         <td className="px-3 py-2">
           <input
+            aria-label={`${valueLabel} for ${item.name}`}
             type="number" min="0" step="0.01"
             value={draft[valueField]}
             onChange={(e) => setDraft((d) => ({ ...d, [valueField]: e.target.value }))}
@@ -176,12 +182,13 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
               onUpdate(item.id, patch);
               setEditing(false);
             }}
+            aria-label={`Save changes to ${item.name}`}
             className="text-xs px-2 py-1 rounded mr-1"
             style={{ background: "var(--ledger-green)", color: "#F7F3E8" }}
           >
             Save
           </button>
-          <button onClick={() => { setDraft(item); setEditing(false); }} className="opacity-50 hover:opacity-100 align-middle">
+          <button onClick={() => { setDraft(item); setEditing(false); }} aria-label="Cancel editing" className="opacity-50 hover:opacity-100 align-middle">
             <X size={14} />
           </button>
         </td>
@@ -196,14 +203,14 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
       {withPurpose && <td className="px-3 py-2.5 text-xs opacity-70">{item.purpose}</td>}
       <td className="px-3 py-2.5 mono text-right">{fmt(item[valueField])}</td>
       <td className="px-3 py-2.5 text-right whitespace-nowrap">
-        <button onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 mr-2"><Pencil size={13} /></button>
-        <button onClick={() => onDelete(item.id)} className="opacity-40 hover:opacity-100"><Trash2 size={13} /></button>
+        <button onClick={() => setEditing(true)} aria-label={`Edit ${item.name}`} className="opacity-40 hover:opacity-100 mr-2"><Pencil size={13} /></button>
+        <button onClick={() => onDelete(item.id)} aria-label={`Delete ${item.name}`} className="opacity-40 hover:opacity-100"><Trash2 size={13} /></button>
       </td>
     </tr>
   );
 }
 
-function AddForm({ categories, valueField, valueLabel, onAdd, withPurpose }) {
+function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurpose }) {
   const empty = { name: "", category: categories[0], purpose: CATEGORY_PURPOSE_DEFAULT[categories[0]] || "Growth", [valueField]: "" };
   const [form, setForm] = useState(empty);
   const [error, setError] = useState("");
@@ -231,8 +238,9 @@ function AddForm({ categories, valueField, valueLabel, onAdd, withPurpose }) {
       style={{ borderColor: "var(--line)" }}
     >
       <div>
-        <label className="block text-[10px] mono opacity-60 mb-1">NAME</label>
+        <label htmlFor={`${idPrefix}-name`} className="block text-[10px] mono opacity-60 mb-1">NAME</label>
         <input
+          id={`${idPrefix}-name`}
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           placeholder="e.g. Everyday savings"
@@ -240,8 +248,9 @@ function AddForm({ categories, valueField, valueLabel, onAdd, withPurpose }) {
         />
       </div>
       <div>
-        <label className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
+        <label htmlFor={`${idPrefix}-category`} className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
         <select
+          id={`${idPrefix}-category`}
           value={form.category}
           onChange={(e) => handleCategoryChange(e.target.value)}
           className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -251,8 +260,9 @@ function AddForm({ categories, valueField, valueLabel, onAdd, withPurpose }) {
       </div>
       {withPurpose && (
         <div>
-          <label className="block text-[10px] mono opacity-60 mb-1">PURPOSE</label>
+          <label htmlFor={`${idPrefix}-purpose`} className="block text-[10px] mono opacity-60 mb-1">PURPOSE</label>
           <select
+            id={`${idPrefix}-purpose`}
             value={form.purpose}
             onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -262,8 +272,9 @@ function AddForm({ categories, valueField, valueLabel, onAdd, withPurpose }) {
         </div>
       )}
       <div>
-        <label className="block text-[10px] mono opacity-60 mb-1">{valueLabel}</label>
+        <label htmlFor={`${idPrefix}-value`} className="block text-[10px] mono opacity-60 mb-1">{valueLabel}</label>
         <input
+          id={`${idPrefix}-value`}
           type="number" min="0" step="0.01"
           value={form[valueField]}
           onChange={(e) => setForm((f) => ({ ...f, [valueField]: e.target.value }))}

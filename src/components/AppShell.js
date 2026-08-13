@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, Wallet, Compass, Target, Telescope, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard } from "lucide-react";
+import { LogOut, LayoutDashboard, Wallet, Compass, Target, Telescope, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, X } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
 
@@ -21,7 +21,7 @@ const NAV = [
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
-  const { displayName, saving, error, currency, handleCurrencyChange, handleSignOut } = useLedgerData();
+  const { displayName, saving, error, currency, handleCurrencyChange, handleSignOut, clearError } = useLedgerData();
 
   return (
     <div style={{ background: "var(--paper)", color: "var(--ink)", minHeight: "100dvh" }} className="flex flex-col flex-1">
@@ -70,10 +70,14 @@ export default function AppShell({ children }) {
 
       {error && (
         <div
-          className="mx-6 sm:mx-10 mt-4 text-xs px-3 py-2 rounded"
+          role="alert"
+          className="mx-6 sm:mx-10 mt-4 text-xs px-3 py-2 rounded flex items-start justify-between gap-3"
           style={{ background: "#FBEAEA", color: "var(--rust)", border: "1px solid #E8C7C7" }}
         >
-          {error}
+          <span>{error}</span>
+          <button onClick={clearError} aria-label="Dismiss error" className="opacity-60 hover:opacity-100 flex-shrink-0">
+            <X size={14} />
+          </button>
         </div>
       )}
 

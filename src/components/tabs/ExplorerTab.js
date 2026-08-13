@@ -26,8 +26,10 @@ export default function ExplorerTab({ opportunities, isAdmin, onAddOpportunity, 
         <p className="text-xs opacity-50 mb-4">How much are you looking to allocate? Explore the categories that might be relevant.</p>
 
         <div className="flex items-center gap-2 mb-5">
-          <span className="mono text-sm">£</span>
+          <label htmlFor="explorer-amount" className="mono text-sm">£</label>
           <input
+            id="explorer-amount"
+            aria-label="Amount to explore"
             type="number" min="0"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
@@ -37,11 +39,12 @@ export default function ExplorerTab({ opportunities, isAdmin, onAddOpportunity, 
           {amountNum > 0 && <span className="text-xs opacity-50">Exploring options for {fmt(amountNum)}</span>}
         </div>
 
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1.5 flex-wrap" role="group" aria-label="Filter by risk">
           {RISK_FILTERS.map((r) => (
             <button
               key={r}
               onClick={() => setRiskFilter(r)}
+              aria-pressed={riskFilter === r}
               className="text-xs px-3 py-1.5 rounded-full border"
               style={
                 riskFilter === r
@@ -135,11 +138,13 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
     return (
       <li className="text-xs border rounded p-2 space-y-1.5" style={{ borderColor: "var(--line)" }}>
         <input
+          aria-label={`Name for ${opportunity.name}`}
           value={draft.name}
           onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
           className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
         />
         <input
+          aria-label={`Description for ${opportunity.name}`}
           value={draft.description}
           onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
           placeholder="One-line description"
@@ -147,6 +152,7 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
         />
         <div className="flex gap-1.5">
           <select
+            aria-label={`Risk level for ${opportunity.name}`}
             value={draft.risk_level}
             onChange={(e) => setDraft((d) => ({ ...d, risk_level: e.target.value }))}
             className="text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -154,6 +160,7 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
             {["Low", "Medium", "High"].map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <input
+            aria-label={`Source URL for ${opportunity.name}`}
             value={draft.source_url || ""}
             onChange={(e) => setDraft((d) => ({ ...d, source_url: e.target.value }))}
             placeholder="Source URL (optional)"
@@ -171,12 +178,13 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
               });
               setEditing(false);
             }}
+            aria-label={`Save changes to ${opportunity.name}`}
             className="text-xs px-2 py-1 rounded"
             style={{ background: "var(--ledger-green)", color: "#F7F3E8" }}
           >
             Save
           </button>
-          <button onClick={() => { setDraft(opportunity); setEditing(false); }} className="opacity-50 hover:opacity-100 px-1">
+          <button onClick={() => { setDraft(opportunity); setEditing(false); }} aria-label="Cancel editing" className="opacity-50 hover:opacity-100 px-1">
             <X size={14} />
           </button>
         </div>
@@ -211,8 +219,8 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
       </div>
       {isAdmin && (
         <div className="flex gap-1 flex-shrink-0">
-          <button onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100"><Pencil size={12} /></button>
-          <button onClick={() => onDelete(opportunity.id)} className="opacity-40 hover:opacity-100"><Trash2 size={12} /></button>
+          <button onClick={() => setEditing(true)} aria-label={`Edit ${opportunity.name}`} className="opacity-40 hover:opacity-100"><Pencil size={12} /></button>
+          <button onClick={() => onDelete(opportunity.id)} aria-label={`Delete ${opportunity.name}`} className="opacity-40 hover:opacity-100"><Trash2 size={12} /></button>
         </div>
       )}
     </li>
@@ -243,8 +251,9 @@ function AddOpportunityForm({ onAdd }) {
       <p className="serif text-sm tracking-wide opacity-80 mb-3 flex items-center gap-1.5"><Plus size={15} /> Add a curated opportunity</p>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="col-span-2 sm:col-span-1">
-          <label className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
+          <label htmlFor="new-opp-category" className="block text-[10px] mono opacity-60 mb-1">CATEGORY</label>
           <select
+            id="new-opp-category"
             value={form.category_id}
             onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -253,16 +262,18 @@ function AddOpportunityForm({ onAdd }) {
           </select>
         </div>
         <div>
-          <label className="block text-[10px] mono opacity-60 mb-1">NAME</label>
+          <label htmlFor="new-opp-name" className="block text-[10px] mono opacity-60 mb-1">NAME</label>
           <input
+            id="new-opp-name"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
           />
         </div>
         <div>
-          <label className="block text-[10px] mono opacity-60 mb-1">RISK</label>
+          <label htmlFor="new-opp-risk" className="block text-[10px] mono opacity-60 mb-1">RISK</label>
           <select
+            id="new-opp-risk"
             value={form.risk_level}
             onChange={(e) => setForm((f) => ({ ...f, risk_level: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
@@ -271,8 +282,9 @@ function AddOpportunityForm({ onAdd }) {
           </select>
         </div>
         <div className="col-span-2 sm:col-span-3">
-          <label className="block text-[10px] mono opacity-60 mb-1">DESCRIPTION</label>
+          <label htmlFor="new-opp-description" className="block text-[10px] mono opacity-60 mb-1">DESCRIPTION</label>
           <input
+            id="new-opp-description"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="One-line, plain English"
@@ -280,8 +292,9 @@ function AddOpportunityForm({ onAdd }) {
           />
         </div>
         <div className="col-span-2 sm:col-span-3">
-          <label className="block text-[10px] mono opacity-60 mb-1">SOURCE URL</label>
+          <label htmlFor="new-opp-source" className="block text-[10px] mono opacity-60 mb-1">SOURCE URL</label>
           <input
+            id="new-opp-source"
             value={form.source_url}
             onChange={(e) => setForm((f) => ({ ...f, source_url: e.target.value }))}
             placeholder="https://…"

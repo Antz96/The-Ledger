@@ -23,8 +23,10 @@ export default function AllocateTab({ alloc, onUpdate }) {
         <p className="serif text-sm tracking-wide opacity-80 mb-1">Monthly savings to allocate</p>
         <p className="text-xs mono opacity-50 mb-3">How much do you set aside each month, and how should it split across risk tiers?</p>
         <div className="flex items-center gap-2 mb-5">
-          <span className="mono text-sm">{currencySymbol()}</span>
+          <label htmlFor="allocate-monthly" className="mono text-sm">{currencySymbol()}</label>
           <input
+            id="allocate-monthly"
+            aria-label="Monthly amount to allocate"
             type="number" min="0"
             value={alloc.monthly}
             onChange={(e) => onUpdate("monthly", Math.max(0, parseFloat(e.target.value) || 0))}
@@ -36,13 +38,15 @@ export default function AllocateTab({ alloc, onUpdate }) {
           <div key={row.key} className="mb-4">
             <div className="flex items-center justify-between mb-1">
               <div>
-                <span className="text-sm font-medium">{row.label}</span>
+                <span id={`allocate-${row.key}-label`} className="text-sm font-medium">{row.label}</span>
                 <span className="text-xs opacity-50 mono ml-2">{row.desc}</span>
               </div>
               <span className="mono text-sm" style={{ color: row.color }}>{alloc[row.key]}% · {fmt(allocDollars[row.key])}</span>
             </div>
             <input
               type="range" min="0" max="100"
+              aria-labelledby={`allocate-${row.key}-label`}
+              aria-valuetext={`${alloc[row.key]}%, ${fmt(allocDollars[row.key])}`}
               value={alloc[row.key]}
               onChange={(e) => onUpdate(row.key, parseInt(e.target.value))}
               className="w-full"

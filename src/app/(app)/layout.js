@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/useSession";
-import { LedgerDataProvider } from "@/lib/LedgerDataContext";
+import { LedgerDataProvider, useLedgerData } from "@/lib/LedgerDataContext";
 import AppShell from "@/components/AppShell";
 
 function Loading() {
@@ -13,6 +13,12 @@ function Loading() {
       <Loader2 className="animate-spin mr-2" size={20} /> Loading…
     </div>
   );
+}
+
+function AppContent({ children }) {
+  const { loading } = useLedgerData();
+  if (loading) return <Loading />;
+  return <AppShell>{children}</AppShell>;
 }
 
 export default function AppLayout({ children }) {
@@ -27,7 +33,7 @@ export default function AppLayout({ children }) {
 
   return (
     <LedgerDataProvider session={session}>
-      <AppShell>{children}</AppShell>
+      <AppContent>{children}</AppContent>
     </LedgerDataProvider>
   );
 }

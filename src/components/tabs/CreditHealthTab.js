@@ -49,6 +49,8 @@ export default function CreditHealthTab({
             return (
               <button
                 key={g.id}
+                role="checkbox"
+                aria-checked={active}
                 onClick={() => onToggleGoal(g.id)}
                 className="text-xs px-3 py-1.5 rounded-full border text-left"
                 style={
@@ -80,7 +82,13 @@ export default function CreditHealthTab({
             const done = completedSet.has(action.id);
             return (
               <li key={action.id}>
-                <button onClick={() => onToggleAction(action.id)} className="flex items-start gap-2.5 text-left w-full group">
+                <button
+                  onClick={() => onToggleAction(action.id)}
+                  role="checkbox"
+                  aria-checked={done}
+                  aria-label={action.label}
+                  className="flex items-start gap-2.5 text-left w-full group"
+                >
                   {done ? (
                     <CheckSquare size={17} className="mt-0.5 flex-shrink-0" style={{ color: "var(--ledger-green-soft)" }} />
                   ) : (
@@ -208,52 +216,52 @@ function CreditProfileForm({ profile, onSave }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
         <div>
-          <label className={labelClass}>PAYMENT HISTORY</label>
-          <select value={form.payment_history_status} onChange={(e) => set("payment_history_status", e.target.value)} className={inputClass}>
+          <label htmlFor="cp-payment-history" className={labelClass}>PAYMENT HISTORY</label>
+          <select id="cp-payment-history" value={form.payment_history_status} onChange={(e) => set("payment_history_status", e.target.value)} className={inputClass}>
             <option value="">—</option>
             {PAYMENT_HISTORY_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelClass}>UTILISATION (%)</label>
-          <input type="number" min="0" max="100" step="1" value={form.utilisation_pct} onChange={(e) => set("utilisation_pct", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-utilisation" className={labelClass}>UTILISATION (%)</label>
+          <input id="cp-utilisation" type="number" min="0" max="100" step="1" value={form.utilisation_pct} onChange={(e) => set("utilisation_pct", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>ELECTORAL ROLL</label>
-          <select value={form.electoral_roll_status} onChange={(e) => set("electoral_roll_status", e.target.value)} className={inputClass}>
+          <label htmlFor="cp-electoral-roll" className={labelClass}>ELECTORAL ROLL</label>
+          <select id="cp-electoral-roll" value={form.electoral_roll_status} onChange={(e) => set("electoral_roll_status", e.target.value)} className={inputClass}>
             <option value="">—</option>
             {ELECTORAL_ROLL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelClass}>RECENT HARD SEARCHES</label>
-          <input type="number" min="0" step="1" value={form.recent_hard_searches} onChange={(e) => set("recent_hard_searches", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-hard-searches" className={labelClass}>RECENT HARD SEARCHES</label>
+          <input id="cp-hard-searches" type="number" min="0" step="1" value={form.recent_hard_searches} onChange={(e) => set("recent_hard_searches", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>OLDEST ACCOUNT (YEARS)</label>
-          <input type="number" min="0" step="0.5" value={form.account_age_years} onChange={(e) => set("account_age_years", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-account-age" className={labelClass}>OLDEST ACCOUNT (YEARS)</label>
+          <input id="cp-account-age" type="number" min="0" step="0.5" value={form.account_age_years} onChange={(e) => set("account_age_years", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>OPEN ACCOUNTS</label>
-          <input type="number" min="0" step="1" value={form.open_accounts_count} onChange={(e) => set("open_accounts_count", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-open-accounts" className={labelClass}>OPEN ACCOUNTS</label>
+          <input id="cp-open-accounts" type="number" min="0" step="1" value={form.open_accounts_count} onChange={(e) => set("open_accounts_count", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>MISSED PAYMENTS</label>
-          <input type="number" min="0" step="1" value={form.missed_payments_count} onChange={(e) => set("missed_payments_count", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-missed-payments" className={labelClass}>MISSED PAYMENTS</label>
+          <input id="cp-missed-payments" type="number" min="0" step="1" value={form.missed_payments_count} onChange={(e) => set("missed_payments_count", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>OUTSTANDING BORROWING</label>
-          <input type="number" min="0" step="0.01" value={form.outstanding_borrowing} onChange={(e) => set("outstanding_borrowing", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-outstanding" className={labelClass}>OUTSTANDING BORROWING</label>
+          <input id="cp-outstanding" type="number" min="0" step="0.01" value={form.outstanding_borrowing} onChange={(e) => set("outstanding_borrowing", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>TOTAL CREDIT LIMIT</label>
-          <input type="number" min="0" step="0.01" value={form.credit_limit_total} onChange={(e) => set("credit_limit_total", e.target.value)} className={inputClass} />
+          <label htmlFor="cp-limit" className={labelClass}>TOTAL CREDIT LIMIT</label>
+          <input id="cp-limit" type="number" min="0" step="0.01" value={form.credit_limit_total} onChange={(e) => set("credit_limit_total", e.target.value)} className={inputClass} />
         </div>
       </div>
 
       <div className="mb-3">
-        <label className={labelClass}>NOTES — e.g. anything on your report worth investigating</label>
-        <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} className={inputClass} />
+        <label htmlFor="cp-notes" className={labelClass}>NOTES — e.g. anything on your report worth investigating</label>
+        <textarea id="cp-notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} className={inputClass} />
       </div>
 
       <button type="submit" className="text-sm font-medium px-4 py-2 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
