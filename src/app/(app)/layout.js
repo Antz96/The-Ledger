@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/useSession";
 import { LedgerDataProvider, useLedgerData } from "@/lib/LedgerDataContext";
@@ -16,8 +16,21 @@ function Loading() {
 }
 
 function AppContent({ children }) {
-  const { loading } = useLedgerData();
+  const { loading, profile } = useLedgerData();
+  const router = useRouter();
+  const pathname = usePathname();
+  const isAssessment = pathname === "/assessment";
+  const needsOnboarding = !!profile && !profile.onboarding_complete;
+
+  useEffect(() => {
+    if (!loading && needsOnboarding && !isAssessment) {
+      router.replace("/assessment");
+    }
+  }, [loading, needsOnboarding, isAssessment, router]);
+
   if (loading) return <Loading />;
+  if (isAssessment) return children;
+  if (needsOnboarding) return <Loading />;
   return <AppShell>{children}</AppShell>;
 }
 
