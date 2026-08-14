@@ -1,26 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, Wallet, Compass, Target, Telescope, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, X } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
-
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/assets", label: "Assets", icon: Wallet },
-  { href: "/wealth-map", label: "Wealth Map", icon: Compass },
-  { href: "/goals", label: "Goals", icon: Target },
-  { href: "/explorer", label: "Explorer", icon: Telescope },
-  { href: "/ledger", label: "Ledger", icon: NotebookPen },
-  { href: "/allocate", label: "Allocate", icon: SlidersHorizontal },
-  { href: "/learn", label: "Learn", icon: GraduationCap },
-  { href: "/rates", label: "Rates", icon: Landmark },
-  { href: "/credit-health", label: "Credit Health", icon: CreditCard },
-];
+import WheelNav from "@/components/WheelNav";
 
 export default function AppShell({ children }) {
-  const pathname = usePathname();
   const { displayName, saving, error, currency, handleCurrencyChange, handleSignOut, clearError } = useLedgerData();
 
   return (
@@ -62,25 +47,10 @@ export default function AppShell({ children }) {
             </button>
           </div>
         </div>
-        <div className="flex gap-1 mt-4 overflow-x-auto">
-          {NAV.map((n) => {
-            const active = pathname === n.href;
-            return (
-              <Link
-                key={n.href}
-                href={n.href}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-colors"
-                style={
-                  active
-                    ? { background: "rgba(15,185,129,0.12)", color: "var(--text)", boxShadow: "inset 0 0 0 1px rgba(15,185,129,0.25)" }
-                    : { color: "var(--muted)" }
-                }
-              >
-                <n.icon size={13} style={active ? { color: "var(--emerald)" } : undefined} /> {n.label}
-              </Link>
-            );
-          })}
-        </div>
+      </div>
+
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }} className="relative z-10">
+        <WheelNav />
       </div>
 
       {error && (
