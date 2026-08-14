@@ -9,7 +9,7 @@ import AppShell from "@/components/AppShell";
 
 function Loading() {
   return (
-    <div className="flex items-center justify-center flex-1 min-h-[100dvh] text-[#5B5541]">
+    <div className="flex items-center justify-center flex-1 min-h-[100dvh] text-[var(--muted)]">
       <Loader2 className="animate-spin mr-2" size={20} /> Loading…
     </div>
   );

@@ -136,7 +136,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
             aria-label={`Name for ${item.name}`}
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </td>
         <td className="px-3 py-2">
@@ -144,7 +144,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
             aria-label={`Category for ${item.name}`}
             value={draft.category}
             onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
-            className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -155,7 +155,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
               aria-label={`Purpose for ${item.name}`}
               value={draft.purpose}
               onChange={(e) => setDraft((d) => ({ ...d, purpose: e.target.value }))}
-              className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+              className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
             >
               {PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -167,7 +167,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
             type="number" min="0" step="0.01"
             value={draft[valueField]}
             onChange={(e) => setDraft((d) => ({ ...d, [valueField]: e.target.value }))}
-            className="w-full text-xs mono text-right border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-xs mono text-right border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </td>
         <td className="px-3 py-2 text-right whitespace-nowrap">
@@ -183,12 +183,12 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
               setEditing(false);
             }}
             aria-label={`Save changes to ${item.name}`}
-            className="text-xs px-2 py-1 rounded mr-1"
-            style={{ background: "var(--ledger-green)", color: "#F7F3E8" }}
+            className="text-xs px-2 py-1 rounded-lg mr-1 text-[var(--obsidian)]"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))" }}
           >
             Save
           </button>
-          <button onClick={() => { setDraft(item); setEditing(false); }} aria-label="Cancel editing" className="opacity-50 hover:opacity-100 align-middle">
+          <button onClick={() => { setDraft(item); setEditing(false); }} aria-label="Cancel editing" className="text-[var(--faint)] hover:text-[var(--text)] align-middle">
             <X size={14} />
           </button>
         </td>
@@ -244,7 +244,7 @@ function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurp
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           placeholder="e.g. Everyday savings"
-          className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         />
       </div>
       <div>
@@ -253,7 +253,7 @@ function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurp
           id={`${idPrefix}-category`}
           value={form.category}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         >
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -265,7 +265,7 @@ function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurp
             id={`${idPrefix}-purpose`}
             value={form.purpose}
             onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))}
-            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
             {PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -279,10 +279,14 @@ function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurp
           value={form[valueField]}
           onChange={(e) => setForm((f) => ({ ...f, [valueField]: e.target.value }))}
           placeholder="0.00"
-          className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         />
       </div>
-      <button type="submit" className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
+      <button
+        type="submit"
+        className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-[var(--obsidian)]"
+        style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))", boxShadow: "0 0 14px rgba(34,211,238,0.25)" }}
+      >
         <Plus size={15} /> Add
       </button>
       {error && <p className="text-xs col-span-2 sm:col-span-5" style={{ color: "var(--rust)" }}>{error}</p>}

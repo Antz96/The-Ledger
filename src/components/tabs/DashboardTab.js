@@ -52,26 +52,26 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronLeft size={18} /></button>
+        <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="p-2 rounded-lg text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel-hi)]"><ChevronLeft size={18} /></button>
         <div className="text-center">
-          <p className="serif text-xl sm:text-2xl">{monthLabel(activeMonth)}</p>
-          <p className="text-[11px] mono opacity-50">page {monthIndex + 1} of {months.length}</p>
+          <p className="serif text-xl sm:text-2xl font-semibold text-[var(--text)]">{monthLabel(activeMonth)}</p>
+          <p className="text-[11px] mono text-[var(--faint)]">page {monthIndex + 1} of {months.length}</p>
         </div>
-        <button onClick={() => shiftMonth(1)} aria-label="Next month" className="p-2 rounded hover:bg-[#EAE4D2]"><ChevronRight size={18} /></button>
+        <button onClick={() => shiftMonth(1)} aria-label="Next month" className="p-2 rounded-lg text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel-hi)]"><ChevronRight size={18} /></button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <SummaryCard icon={<TrendingUp size={16} />} label="Income" value={fmt(totals.income)} color="var(--ledger-green-soft)" />
+        <SummaryCard icon={<TrendingUp size={16} />} label="Income" value={fmt(totals.income)} color="var(--emerald)" />
         <SummaryCard icon={<TrendingDown size={16} />} label="Expenses" value={fmt(totals.expense)} color="var(--rust)" />
         <SummaryCard icon={<PiggyBank size={16} />} label="Saved" value={fmt(totals.savings)} color="var(--gold)" />
-        <SummaryCard icon={<Wallet size={16} />} label="Left over" value={fmt(net)} color={net >= 0 ? "var(--ledger-green-soft)" : "var(--rust)"} />
+        <SummaryCard icon={<Wallet size={16} />} label="Left over" value={fmt(net)} color={net >= 0 ? "var(--emerald)" : "var(--rust)"} />
       </div>
 
       <div className="ledger-card p-4 sm:p-5 mb-6">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <p className="serif text-sm tracking-wide opacity-80">Savings goal — all-time</p>
-          <div className="flex items-center gap-2 text-xs mono">
-            <label htmlFor="dashboard-goal-target" className="opacity-60">target</label><span>{currencySymbol()}</span>
+          <p className="serif text-sm tracking-wide text-[var(--muted)]">Savings goal — all-time</p>
+          <div className="flex items-center gap-2 text-xs mono text-[var(--muted)]">
+            <label htmlFor="dashboard-goal-target" className="opacity-70">target</label><span>{currencySymbol()}</span>
             <input
               id="dashboard-goal-target"
               aria-label="Savings goal target amount"
@@ -79,45 +79,68 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
               onChange={(e) => setGoalDraft(e.target.value.replace(/[^0-9.]/g, ""))}
               onBlur={handleGoalSave}
               onKeyDown={(e) => e.key === "Enter" && handleGoalSave()}
-              className="w-20 bg-transparent border-b border-[var(--line)] focus:outline-none focus:border-[var(--gold)] px-1"
+              className="w-20 bg-transparent border-b border-[var(--line)] focus:outline-none focus:border-[var(--gold)] px-1 text-[var(--text)]"
             />
           </div>
         </div>
-        <div className="h-3 w-full rounded-full bg-[#EDE7D6] overflow-hidden">
-          <div className="h-full rounded-full transition-all" style={{ width: `${goalPct}%`, background: "var(--gold)" }} />
+        <div className="h-3 w-full rounded-full bg-[var(--panel-hi)] overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: `${goalPct}%`, background: "linear-gradient(90deg, var(--gold), #f0d68a)", boxShadow: "0 0 10px rgba(217,180,74,0.5)" }}
+          />
         </div>
-        <div className="flex justify-between mt-1.5 text-xs mono opacity-70">
+        <div className="flex justify-between mt-1.5 text-xs mono text-[var(--muted)]">
           <span>{fmt(totalSaved)} saved</span><span>{goalPct.toFixed(0)}% of {fmt(goal)}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="ledger-card p-4 sm:p-5">
-          <p className="serif text-sm tracking-wide opacity-80 mb-3">Spending by category — this month</p>
+          <p className="serif text-sm tracking-wide text-[var(--muted)] mb-3">Spending by category — this month</p>
           {expenseByCategory.length === 0 ? (
-            <p className="text-xs opacity-50 mono py-10 text-center">No expenses logged yet.</p>
+            <p className="text-xs text-[var(--faint)] mono py-10 text-center">No expenses logged yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={expenseByCategory} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                <Pie data={expenseByCategory} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={2} stroke="none">
                   {expenseByCategory.map((e, i) => <Cell key={e.name} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v) => fmt(v)} contentStyle={{ fontFamily: "var(--font-mono)", fontSize: 12, borderRadius: 4 }} />
-                <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)" }} />
+                <Tooltip
+                  formatter={(v) => fmt(v)}
+                  contentStyle={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    borderRadius: 8,
+                    background: "var(--obsidian-2)",
+                    border: "1px solid var(--line)",
+                    color: "var(--text)",
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", color: "var(--muted)" }} />
               </PieChart>
             </ResponsiveContainer>
           )}
         </div>
         <div className="ledger-card p-4 sm:p-5">
-          <p className="serif text-sm tracking-wide opacity-80 mb-3">Trend — last {trend.length} months</p>
+          <p className="serif text-sm tracking-wide text-[var(--muted)] mb-3">Trend — last {trend.length} months</p>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={trend}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fontFamily: "var(--font-mono)" }} axisLine={{ stroke: "var(--line)" }} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} width={40} />
-              <Tooltip formatter={(v) => fmt(v)} contentStyle={{ fontFamily: "var(--font-mono)", fontSize: 12, borderRadius: 4 }} />
-              <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)" }} />
-              <Bar dataKey="Income" fill="var(--ledger-green-soft)" radius={[2, 2, 0, 0]} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fontFamily: "var(--font-mono)", fill: "var(--muted)" }} axisLine={{ stroke: "var(--line)" }} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--muted)" }} axisLine={false} tickLine={false} width={40} />
+              <Tooltip
+                formatter={(v) => fmt(v)}
+                contentStyle={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  borderRadius: 8,
+                  background: "var(--obsidian-2)",
+                  border: "1px solid var(--line)",
+                  color: "var(--text)",
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", color: "var(--muted)" }} />
+              <Bar dataKey="Income" fill="var(--emerald)" radius={[2, 2, 0, 0]} />
               <Bar dataKey="Expense" fill="var(--rust)" radius={[2, 2, 0, 0]} />
               <Bar dataKey="Saved" fill="var(--gold)" radius={[2, 2, 0, 0]} />
             </BarChart>

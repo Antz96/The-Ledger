@@ -8,9 +8,9 @@ import {
 } from "@/lib/creditHealthContent";
 
 const UTIL_COLOR = (pct) => {
-  if (pct === null || pct === undefined || pct === "") return "var(--ink)";
+  if (pct === null || pct === undefined || pct === "") return "var(--text)";
   const n = Number(pct);
-  if (n <= 30) return "var(--ledger-green-soft)";
+  if (n <= 30) return "var(--emerald)";
   if (n <= 75) return "var(--gold)";
   return "var(--rust)";
 };
@@ -55,8 +55,8 @@ export default function CreditHealthTab({
                 className="text-xs px-3 py-1.5 rounded-full border text-left"
                 style={
                   active
-                    ? { background: "var(--ledger-green)", color: "#F7F3E8", borderColor: "var(--ledger-green)" }
-                    : { borderColor: "var(--line)", color: "var(--ink)", opacity: 0.7 }
+                    ? { background: "linear-gradient(140deg, var(--emerald), var(--cyan))", color: "var(--obsidian)", borderColor: "transparent" }
+                    : { borderColor: "var(--line)", color: "var(--muted)" }
                 }
               >
                 {g.label}
@@ -71,10 +71,10 @@ export default function CreditHealthTab({
           <p className="serif text-sm tracking-wide opacity-80">Action checklist</p>
           <span className="text-xs mono opacity-50">{completedCount} of {CREDIT_ACTIONS.length}</span>
         </div>
-        <div className="h-2 w-full rounded-full bg-[#EDE7D6] overflow-hidden mb-4">
+        <div className="h-2 w-full rounded-full bg-[var(--panel-hi)] overflow-hidden mb-4">
           <div
             className="h-full rounded-full transition-all"
-            style={{ width: `${(completedCount / CREDIT_ACTIONS.length) * 100}%`, background: "var(--ledger-green-soft)" }}
+            style={{ width: `${(completedCount / CREDIT_ACTIONS.length) * 100}%`, background: "linear-gradient(90deg, var(--emerald), var(--cyan))" }}
           />
         </div>
         <ul className="space-y-3">
@@ -133,10 +133,10 @@ export default function CreditHealthTab({
         </div>
       </div>
 
-      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "#E8C7C7" }}>
+      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "rgba(242,99,122,0.25)" }}>
         <div className="flex items-start gap-2">
           <ShieldAlert size={16} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
-          <p className="text-xs leading-relaxed opacity-80">
+          <p className="text-xs leading-relaxed text-[var(--muted)]">
             Credit reference agencies can hold different information, so it&apos;s worth checking your actual credit
             report rather than relying on a single consumer-facing score. This isn&apos;t regulated financial advice —
             for anything specific to your situation, a free debt or credit guidance charity is a good place to start.
@@ -196,8 +196,8 @@ function CreditProfileForm({ profile, onSave }) {
     });
   }
 
-  const inputClass = "w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]";
-  const labelClass = "block text-[10px] mono opacity-60 mb-1";
+  const inputClass = "w-full text-sm border border-[var(--line)] rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]";
+  const labelClass = "block text-[10px] mono text-[var(--muted)] mb-1";
 
   const utilisationDisplay = profile?.utilisation_pct !== null && profile?.utilisation_pct !== undefined
     ? `${profile.utilisation_pct}%` : null;
@@ -264,12 +264,16 @@ function CreditProfileForm({ profile, onSave }) {
         <textarea id="cp-notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} className={inputClass} />
       </div>
 
-      <button type="submit" className="text-sm font-medium px-4 py-2 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
+      <button
+        type="submit"
+        className="text-sm font-medium px-4 py-2 rounded-lg text-[var(--obsidian)]"
+        style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))", boxShadow: "0 0 14px rgba(34,211,238,0.25)" }}
+      >
         Save profile
       </button>
 
       {(profile?.outstanding_borrowing || profile?.credit_limit_total) && (
-        <p className="text-xs opacity-50 mt-3">
+        <p className="text-xs text-[var(--muted)] mt-3">
           {profile.outstanding_borrowing != null && `${fmt(profile.outstanding_borrowing)} owed`}
           {profile.outstanding_borrowing != null && profile.credit_limit_total != null && " of "}
           {profile.credit_limit_total != null && `${fmt(profile.credit_limit_total)} total limit`}

@@ -38,8 +38,8 @@ export default function RecommendedForYou({ tags, articles }) {
   return (
     <div className="ledger-card p-4 sm:p-5 mb-6">
       <div className="flex items-center gap-2 mb-3">
-        <BookOpen size={16} style={{ color: "var(--ledger-green-soft)" }} />
-        <p className="serif text-sm tracking-wide opacity-80">{heading}</p>
+        <BookOpen size={16} style={{ color: "var(--emerald)" }} />
+        <p className="serif text-sm tracking-wide text-[var(--muted)]">{heading}</p>
       </div>
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {matches.map((a) => (
@@ -48,15 +48,15 @@ export default function RecommendedForYou({ tags, articles }) {
               href={a.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block h-full p-3 rounded border hover:bg-[#EAE4D2] transition-colors"
+              className="block h-full p-3 rounded-xl border transition-colors hover:bg-[var(--panel-hi)]"
               style={{ borderColor: "var(--line)" }}
             >
               <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="text-sm font-medium leading-snug">{a.title}</p>
-                <ExternalLink size={12} className="opacity-40 mt-1 shrink-0" />
+                <p className="text-sm font-medium leading-snug text-[var(--text)]">{a.title}</p>
+                <ExternalLink size={12} className="text-[var(--faint)] mt-1 shrink-0" />
               </div>
-              <p className="text-xs opacity-60 leading-snug mb-2">{a.summary}</p>
-              <p className="text-[10px] mono opacity-40">{a.source_name}</p>
+              <p className="text-xs text-[var(--muted)] leading-snug mb-2">{a.summary}</p>
+              <p className="text-[10px] mono text-[var(--faint)]">{a.source_name}</p>
             </a>
           </li>
         ))}

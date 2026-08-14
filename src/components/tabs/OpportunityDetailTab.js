@@ -6,8 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Pencil, Trash2, ShieldAlert, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
 import { EXPLORER_CATEGORIES } from "@/lib/explorerCategories";
 
-const RISK_COLOR = { Low: "var(--ledger-green-soft)", Medium: "var(--gold)", High: "var(--rust)" };
-const PURPOSE_COLOR = { Safety: "var(--ledger-green-soft)", Growth: "var(--gold)", Income: "#5B7A99", Speculation: "var(--rust)" };
+const RISK_COLOR = { Low: "var(--emerald)", Medium: "var(--gold)", High: "var(--rust)" };
+const PURPOSE_COLOR = { Safety: "var(--emerald)", Growth: "var(--gold)", Income: "var(--cyan)", Speculation: "var(--rust)" };
 const LIQUIDITY_OPTIONS = ["Immediate", "Months", "Years", "10+ Years"];
 const HORIZON_OPTIONS = ["Less than 1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
 const PURPOSE_OPTIONS = ["Safety", "Growth", "Income", "Speculation"];
@@ -167,7 +167,7 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
         </a>
       )}
 
-      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "#E8C7C7" }}>
+      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "rgba(242,99,122,0.25)" }}>
         <div className="flex items-start gap-2">
           <ShieldAlert size={16} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
           <p className="text-xs leading-relaxed opacity-80">
@@ -214,8 +214,8 @@ function EditForm({ opportunity, onSave, onCancel }) {
     });
   }
 
-  const inputClass = "w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]";
-  const labelClass = "block text-[10px] mono opacity-60 mb-1";
+  const inputClass = "w-full text-sm border border-[var(--line)] rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]";
+  const labelClass = "block text-[10px] mono text-[var(--muted)] mb-1";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -296,10 +296,14 @@ function EditForm({ opportunity, onSave, onCancel }) {
         </div>
       </div>
       <div className="flex gap-2">
-        <button type="submit" className="text-sm font-medium px-4 py-2 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
+        <button
+          type="submit"
+          className="text-sm font-medium px-4 py-2 rounded-lg text-[var(--obsidian)]"
+          style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))", boxShadow: "0 0 14px rgba(34,211,238,0.25)" }}
+        >
           Save
         </button>
-        <button type="button" onClick={onCancel} className="text-sm px-4 py-2 rounded border" style={{ borderColor: "var(--line)" }}>
+        <button type="button" onClick={onCancel} className="text-sm px-4 py-2 rounded-lg border text-[var(--muted)]" style={{ borderColor: "var(--line)" }}>
           Cancel
         </button>
       </div>

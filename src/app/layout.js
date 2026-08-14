@@ -1,10 +1,10 @@
-import { Fraunces, IBM_Plex_Mono, Inter } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -26,7 +26,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${plexMono.variable} ${inter.variable} h-full`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${plexMono.variable} ${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
