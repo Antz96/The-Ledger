@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recha
 import { PiggyBank, TrendingDown, Wallet, ArrowRight } from "lucide-react";
 import { fmt, PIE_COLORS } from "@/lib/ledgerConstants";
 import SummaryCard from "@/components/ui/SummaryCard";
+import NetWorthRing from "@/components/tabs/NetWorthRing";
 
 function byCategory(items, valueField) {
   const map = {};
@@ -17,7 +18,7 @@ function byCategory(items, valueField) {
     .sort((a, b) => b.value - a.value);
 }
 
-export default function NetWorthSummary({ assets, liabilities }) {
+export default function NetWorthSummary({ assets, liabilities, goalPct }) {
   const totalAssets = useMemo(() => assets.reduce((s, a) => s + (Number(a.value) || 0), 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((s, l) => s + (Number(l.balance) || 0), 0), [liabilities]);
   const netWorth = totalAssets - totalLiabilities;
@@ -46,6 +47,11 @@ export default function NetWorthSummary({ assets, liabilities }) {
   return (
     <div className="mb-6">
       <p className="serif text-sm tracking-wide text-[var(--muted)] mb-3">Net worth</p>
+
+      {totalAssets > 0 && (
+        <NetWorthRing assetsByCategory={assetsByCategory} totalAssets={totalAssets} netWorth={netWorth} goalPct={goalPct} />
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
         <SummaryCard icon={<PiggyBank size={16} />} label="Total assets" value={fmt(totalAssets)} color="var(--emerald)" />
         <SummaryCard icon={<TrendingDown size={16} />} label="Total liabilities" value={fmt(totalLiabilities)} color="var(--rust)" />
