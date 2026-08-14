@@ -30,6 +30,29 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000). Sign up with an email + password (if "Confirm
 email" is on in Supabase's Auth settings, you'll need to click the confirmation link before signing in).
 
+## Optional: bank connections (`/connections`)
+
+Everything else in the app is manual entry. `/connections` is an experimental, opt-in feature that lets
+a user link a real bank account via [Enable Banking](https://enablebanking.com), an FCA-regulated open
+banking provider, and view live transaction data. It's disabled until configured — nothing else in the
+app depends on it.
+
+To set it up:
+
+1. Run [supabase/migrations/0012_bank_connections.sql](supabase/migrations/0012_bank_connections.sql) in
+   the SQL Editor.
+2. Get your Supabase **service role** key (Project Settings → API → service_role — not the anon key) and
+   set it as `SUPABASE_SERVICE_ROLE_KEY`. This is only ever read server-side, in the bank-connection
+   callback route, to correlate a bank's redirect back to the user who started it.
+3. Sign up at [enablebanking.com](https://enablebanking.com), register an application, and generate its
+   certificate/private key pair. Set `ENABLE_BANKING_APP_ID`, `ENABLE_BANKING_PRIVATE_KEY`, and
+   `ENABLE_BANKING_REDIRECT_URI` (must exactly match what's registered in their console — e.g.
+   `http://localhost:3000/api/banking/callback` for local dev) per the comments in
+   [.env.local.example](.env.local.example).
+4. Enable Banking's free "Restricted Production" tier lets you link your own real accounts with no
+   contract — enough to test this end to end. Going further (other people's accounts, sustained use)
+   requires a signed agreement and KYB check with them directly.
+
 ## Deploying to Vercel
 
 1. **Push this repo to GitHub.**
