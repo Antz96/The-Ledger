@@ -16,7 +16,7 @@ export default function Home() {
 
   if (session === undefined || session) {
     return (
-      <div className="flex items-center justify-center flex-1 min-h-[100dvh] text-[#5B5541]">
+      <div className="flex items-center justify-center flex-1 min-h-[100dvh] text-[var(--muted)]" style={{ background: "var(--obsidian)" }}>
         <Loader2 className="animate-spin mr-2" size={20} /> Loading…
       </div>
     );

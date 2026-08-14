@@ -24,28 +24,40 @@ export default function AppShell({ children }) {
   const { displayName, saving, error, currency, handleCurrencyChange, handleSignOut, clearError } = useLedgerData();
 
   return (
-    <div style={{ background: "var(--paper)", color: "var(--ink)", minHeight: "100dvh" }} className="flex flex-col flex-1">
-      <div style={{ background: "var(--ledger-green)" }} className="px-6 py-4 sm:px-10">
+    <div style={{ background: "var(--obsidian)", color: "var(--text)", minHeight: "100dvh" }} className="flex flex-col flex-1">
+      <div
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+        className="px-6 py-4 sm:px-10 backdrop-blur-xl relative z-10"
+      >
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <p className="serif text-[#E8E2CE] text-xl sm:text-2xl">The Ledger</p>
-            <p className="text-[#B9C9BB] text-[11px] mono">signed in as {displayName}</p>
+          <div className="flex items-center gap-2.5">
+            <span
+              className="w-[22px] h-[22px] rounded-[7px] flex-shrink-0"
+              style={{
+                background: "linear-gradient(140deg, var(--emerald), var(--cyan))",
+                boxShadow: "0 0 14px rgba(34,211,238,0.35), inset 0 1px 0 rgba(255,255,255,0.35)",
+              }}
+            />
+            <div>
+              <p className="serif font-semibold text-[var(--text)] text-lg sm:text-xl leading-tight">The Ledger</p>
+              <p className="text-[var(--muted)] text-[11px] mono">signed in as {displayName}</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <select
               value={currency}
               onChange={(e) => handleCurrencyChange(e.target.value)}
               aria-label="Currency"
-              className="bg-transparent text-[11px] mono text-[#B9C9BB] border border-[#3D5C4A] rounded px-1.5 py-0.5 cursor-pointer hover:text-white focus:outline-none"
+              className="bg-transparent text-[11px] mono text-[var(--muted)] border border-[var(--line)] rounded px-1.5 py-0.5 cursor-pointer hover:text-[var(--text)] focus:outline-none"
             >
               {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code} style={{ color: "var(--ink)" }}>
+                <option key={c.code} value={c.code} style={{ color: "var(--obsidian-2)" }}>
                   {c.symbol} {c.code}
                 </option>
               ))}
             </select>
-            <span className="text-[11px] mono text-[#B9C9BB]">{saving ? "saving…" : "synced"}</span>
-            <button onClick={handleSignOut} className="flex items-center gap-1 text-xs text-[#E8E2CE] hover:text-white">
+            <span className="text-[11px] mono text-[var(--muted)]">{saving ? "saving…" : "synced"}</span>
+            <button onClick={handleSignOut} className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--text)]">
               <LogOut size={13} /> Sign out
             </button>
           </div>
@@ -57,11 +69,14 @@ export default function AppShell({ children }) {
               <Link
                 key={n.href}
                 href={n.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-t text-xs whitespace-nowrap ${
-                  active ? "bg-[var(--paper)] text-[var(--ink)]" : "text-[#B9C9BB] hover:text-white"
-                }`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-colors"
+                style={
+                  active
+                    ? { background: "rgba(15,185,129,0.12)", color: "var(--text)", boxShadow: "inset 0 0 0 1px rgba(15,185,129,0.25)" }
+                    : { color: "var(--muted)" }
+                }
               >
-                <n.icon size={13} /> {n.label}
+                <n.icon size={13} style={active ? { color: "var(--emerald)" } : undefined} /> {n.label}
               </Link>
             );
           })}
@@ -71,8 +86,8 @@ export default function AppShell({ children }) {
       {error && (
         <div
           role="alert"
-          className="mx-6 sm:mx-10 mt-4 text-xs px-3 py-2 rounded flex items-start justify-between gap-3"
-          style={{ background: "#FBEAEA", color: "var(--rust)", border: "1px solid #E8C7C7" }}
+          className="mx-6 sm:mx-10 mt-4 text-xs px-3 py-2 rounded-lg flex items-start justify-between gap-3"
+          style={{ background: "rgba(242,99,122,0.1)", color: "var(--rust)", border: "1px solid rgba(242,99,122,0.25)" }}
         >
           <span>{error}</span>
           <button onClick={clearError} aria-label="Dismiss error" className="opacity-60 hover:opacity-100 flex-shrink-0">
@@ -81,7 +96,7 @@ export default function AppShell({ children }) {
         </div>
       )}
 
-      <div className="px-4 sm:px-10 py-6 max-w-6xl mx-auto w-full">{children}</div>
+      <div className="px-4 sm:px-10 py-6 max-w-6xl mx-auto w-full relative z-10">{children}</div>
     </div>
   );
 }

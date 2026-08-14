@@ -20,26 +20,26 @@ export default function AllocateTab({ alloc, onUpdate }) {
   return (
     <div className="space-y-6">
       <div className="ledger-card p-4 sm:p-5">
-        <p className="serif text-sm tracking-wide opacity-80 mb-1">Monthly savings to allocate</p>
-        <p className="text-xs mono opacity-50 mb-3">How much do you set aside each month, and how should it split across risk tiers?</p>
+        <p className="serif text-sm tracking-wide text-[var(--muted)] mb-1">Monthly savings to allocate</p>
+        <p className="text-xs mono text-[var(--faint)] mb-3">How much do you set aside each month, and how should it split across risk tiers?</p>
         <div className="flex items-center gap-2 mb-5">
-          <label htmlFor="allocate-monthly" className="mono text-sm">{currencySymbol()}</label>
+          <label htmlFor="allocate-monthly" className="mono text-sm text-[var(--text)]">{currencySymbol()}</label>
           <input
             id="allocate-monthly"
             aria-label="Monthly amount to allocate"
             type="number" min="0"
             value={alloc.monthly}
             onChange={(e) => onUpdate("monthly", Math.max(0, parseFloat(e.target.value) || 0))}
-            className="w-32 border border-[var(--line)] rounded px-2 py-1.5 text-sm mono bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-32 border border-[var(--line)] rounded-lg px-2 py-1.5 text-sm mono bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
-          <span className="text-xs opacity-50">/ month</span>
+          <span className="text-xs text-[var(--muted)]">/ month</span>
         </div>
         {ROWS.map((row) => (
           <div key={row.key} className="mb-4">
             <div className="flex items-center justify-between mb-1">
               <div>
-                <span id={`allocate-${row.key}-label`} className="text-sm font-medium">{row.label}</span>
-                <span className="text-xs opacity-50 mono ml-2">{row.desc}</span>
+                <span id={`allocate-${row.key}-label`} className="text-sm font-medium text-[var(--text)]">{row.label}</span>
+                <span className="text-xs text-[var(--faint)] mono ml-2">{row.desc}</span>
               </div>
               <span className="mono text-sm" style={{ color: row.color }}>{alloc[row.key]}% · {fmt(allocDollars[row.key])}</span>
             </div>
@@ -53,14 +53,14 @@ export default function AllocateTab({ alloc, onUpdate }) {
             />
           </div>
         ))}
-        <div className={`text-xs mono mt-2 ${allocSum === 100 ? "opacity-50" : ""}`} style={{ color: allocSum === 100 ? undefined : "var(--rust)" }}>
+        <div className="text-xs mono mt-2" style={{ color: allocSum === 100 ? "var(--muted)" : "var(--rust)" }}>
           {allocSum === 100 ? `Totals 100% — ${fmt(alloc.monthly)}/month allocated.` : `Totals ${allocSum}% — adjust sliders so they add to 100%.`}
         </div>
       </div>
-      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "#E8C7C7" }}>
+      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "rgba(242,99,122,0.25)" }}>
         <div className="flex items-start gap-2">
           <ShieldAlert size={16} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
-          <p className="text-xs leading-relaxed opacity-80">
+          <p className="text-xs leading-relaxed text-[var(--muted)]">
             This planner just does the arithmetic on percentages you choose — it isn&apos;t investment advice, and this
             isn&apos;t a licensed financial advisor. How you split money across risk tiers depends on your age,
             timeline, debt, and risk tolerance. Consider talking to a fee-only fiduciary advisor for guidance

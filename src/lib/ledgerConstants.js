@@ -3,12 +3,12 @@ export const INCOME_CATS = ["Salary", "Freelance", "Investment", "Gift", "Other"
 export const SAVINGS_CATS = ["Emergency Fund", "Retirement", "Goal Fund", "Other"];
 
 export const TYPE_META = {
-  income: { label: "Income", color: "#2F6B4F", cats: INCOME_CATS },
-  expense: { label: "Expense", color: "#A63D40", cats: EXPENSE_CATS },
-  savings: { label: "Savings", color: "#B8860B", cats: SAVINGS_CATS },
+  income: { label: "Income", color: "#0FB981", cats: INCOME_CATS },
+  expense: { label: "Expense", color: "#F2637A", cats: EXPENSE_CATS },
+  savings: { label: "Savings", color: "#D9B44A", cats: SAVINGS_CATS },
 };
 
-export const PIE_COLORS = ["#2F6B4F", "#A63D40", "#B8860B", "#5B7A99", "#8C6A9C", "#C97B4A", "#6B8E6B", "#9A8C78"];
+export const PIE_COLORS = ["#0FB981", "#22D3EE", "#D9B44A", "#F2637A", "#8B7FD9", "#3D4A5C", "#1F6F63", "#E0A458"];
 
 export function monthKey(d) {
   return d.slice(0, 7);

@@ -79,7 +79,7 @@ function GoalCard({ goal, onUpdate, onDelete }) {
           aria-label={`Name for ${goal.name}`}
           value={draft.name}
           onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-          className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         />
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -89,7 +89,7 @@ function GoalCard({ goal, onUpdate, onDelete }) {
               type="number" min="0" step="0.01"
               value={draft.target_amount}
               onChange={(e) => setDraft((d) => ({ ...d, target_amount: e.target.value }))}
-              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
             />
           </div>
           <div>
@@ -99,7 +99,7 @@ function GoalCard({ goal, onUpdate, onDelete }) {
               type="number" min="0" step="0.01"
               value={draft.starting_amount}
               onChange={(e) => setDraft((d) => ({ ...d, starting_amount: e.target.value }))}
-              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
             />
           </div>
           <div>
@@ -109,7 +109,7 @@ function GoalCard({ goal, onUpdate, onDelete }) {
               type="number" min="0" step="0.01"
               value={draft.monthly_contribution}
               onChange={(e) => setDraft((d) => ({ ...d, monthly_contribution: e.target.value }))}
-              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
             />
           </div>
           <div>
@@ -119,7 +119,7 @@ function GoalCard({ goal, onUpdate, onDelete }) {
               type="date"
               value={draft.target_date}
               onChange={(e) => setDraft((d) => ({ ...d, target_date: e.target.value }))}
-              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+              className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
             />
           </div>
         </div>
@@ -136,12 +136,12 @@ function GoalCard({ goal, onUpdate, onDelete }) {
               setEditing(false);
             }}
             aria-label={`Save changes to ${goal.name}`}
-            className="text-xs px-3 py-1.5 rounded"
-            style={{ background: "var(--ledger-green)", color: "#F7F3E8" }}
+            className="text-xs px-3 py-1.5 rounded-lg text-[var(--obsidian)]"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))" }}
           >
             Save
           </button>
-          <button onClick={() => setEditing(false)} aria-label="Cancel editing" className="text-xs px-2 py-1.5 opacity-50 hover:opacity-100">
+          <button onClick={() => setEditing(false)} aria-label="Cancel editing" className="text-xs px-2 py-1.5 text-[var(--faint)] hover:text-[var(--text)]">
             <X size={14} />
           </button>
         </div>
@@ -152,37 +152,40 @@ function GoalCard({ goal, onUpdate, onDelete }) {
   return (
     <div className="ledger-card p-4 sm:p-5">
       <div className="flex items-start justify-between mb-2">
-        <p className="serif text-sm">{goal.name}</p>
+        <p className="serif text-sm text-[var(--text)]">{goal.name}</p>
         <div className="flex gap-1.5">
-          <button onClick={() => setEditing(true)} aria-label={`Edit ${goal.name}`} className="opacity-40 hover:opacity-100"><Pencil size={13} /></button>
-          <button onClick={() => onDelete(goal.id)} aria-label={`Delete ${goal.name}`} className="opacity-40 hover:opacity-100"><Trash2 size={13} /></button>
+          <button onClick={() => setEditing(true)} aria-label={`Edit ${goal.name}`} className="text-[var(--faint)] hover:text-[var(--text)]"><Pencil size={13} /></button>
+          <button onClick={() => onDelete(goal.id)} aria-label={`Delete ${goal.name}`} className="text-[var(--faint)] hover:text-[var(--text)]"><Trash2 size={13} /></button>
         </div>
       </div>
 
-      <div className="h-2.5 w-full rounded-full bg-[#EDE7D6] overflow-hidden mb-1.5">
-        <div className="h-full rounded-full transition-all" style={{ width: `${progressPct}%`, background: "var(--gold)" }} />
+      <div className="h-2.5 w-full rounded-full bg-[var(--panel-hi)] overflow-hidden mb-1.5">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, var(--gold), #f0d68a)", boxShadow: "0 0 10px rgba(217,180,74,0.5)" }}
+        />
       </div>
-      <div className="flex justify-between text-xs mono opacity-70 mb-3">
+      <div className="flex justify-between text-xs mono text-[var(--muted)] mb-3">
         <span>{fmt(projectedSaved)} projected</span>
         <span>{progressPct.toFixed(0)}% of {fmt(goal.target_amount)}</span>
       </div>
 
-      <div className="text-xs opacity-60 space-y-0.5">
+      <div className="text-xs text-[var(--muted)] space-y-0.5">
         {Number(goal.monthly_contribution) > 0 && <p>{fmt(goal.monthly_contribution)}/month</p>}
         {goal.target_date && <p>Target date: {goal.target_date}</p>}
-        {projectedDate === "reached" && <p style={{ color: "var(--ledger-green-soft)" }}>Target reached</p>}
+        {projectedDate === "reached" && <p style={{ color: "var(--emerald)" }}>Target reached</p>}
         {projectedDate && projectedDate !== "reached" && (
           <p>
             Estimated: {projectedDate.toLocaleDateString("en-GB", { month: "short", year: "numeric" })}
             {onTrack !== null && (
-              <span style={{ color: onTrack ? "var(--ledger-green-soft)" : "var(--rust)" }}>
+              <span style={{ color: onTrack ? "var(--emerald)" : "var(--rust)" }}>
                 {" "}— {onTrack ? "on track" : "behind schedule"}
               </span>
             )}
           </p>
         )}
         {!projectedDate && Number(goal.monthly_contribution) === 0 && (
-          <p className="opacity-50">Add a monthly contribution to see an estimated date.</p>
+          <p className="text-[var(--faint)]">Add a monthly contribution to see an estimated date.</p>
         )}
       </div>
     </div>
@@ -221,7 +224,7 @@ function AddGoalForm({ onAdd }) {
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="e.g. Emergency fund"
-            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div>
@@ -232,7 +235,7 @@ function AddGoalForm({ onAdd }) {
             value={form.target_amount}
             onChange={(e) => setForm((f) => ({ ...f, target_amount: e.target.value }))}
             placeholder="0.00"
-            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div>
@@ -243,7 +246,7 @@ function AddGoalForm({ onAdd }) {
             value={form.starting_amount}
             onChange={(e) => setForm((f) => ({ ...f, starting_amount: e.target.value }))}
             placeholder="0.00"
-            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div>
@@ -254,7 +257,7 @@ function AddGoalForm({ onAdd }) {
             value={form.monthly_contribution}
             onChange={(e) => setForm((f) => ({ ...f, monthly_contribution: e.target.value }))}
             placeholder="0.00"
-            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div className="col-span-2 sm:col-span-3">
@@ -264,11 +267,15 @@ function AddGoalForm({ onAdd }) {
             type="date"
             value={form.target_date}
             onChange={(e) => setForm((f) => ({ ...f, target_date: e.target.value }))}
-            className="w-full sm:w-48 text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full sm:w-48 text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div className="col-span-2 sm:col-span-3">
-          <button type="submit" className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
+          <button
+            type="submit"
+            className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-[var(--obsidian)]"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))", boxShadow: "0 0 14px rgba(34,211,238,0.25)" }}
+          >
             <Plus size={15} /> Add goal
           </button>
         </div>

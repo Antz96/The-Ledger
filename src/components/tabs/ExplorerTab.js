@@ -34,7 +34,7 @@ export default function ExplorerTab({ opportunities, isAdmin, onAddOpportunity, 
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="e.g. 1000"
-            className="w-32 border border-[var(--line)] rounded px-2 py-1.5 text-sm mono bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-32 border border-[var(--line)] rounded px-2 py-1.5 text-sm mono bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
           {amountNum > 0 && <span className="text-xs opacity-50">Exploring options for {fmt(amountNum)}</span>}
         </div>
@@ -48,8 +48,8 @@ export default function ExplorerTab({ opportunities, isAdmin, onAddOpportunity, 
               className="text-xs px-3 py-1.5 rounded-full border"
               style={
                 riskFilter === r
-                  ? { background: "var(--ledger-green)", color: "#F7F3E8", borderColor: "var(--ledger-green)" }
-                  : { borderColor: "var(--line)", color: "var(--ink)", opacity: 0.7 }
+                  ? { background: "linear-gradient(140deg, var(--emerald), var(--cyan))", color: "var(--obsidian)", borderColor: "transparent" }
+                  : { borderColor: "var(--line)", color: "var(--muted)" }
               }
             >
               {r}
@@ -97,10 +97,10 @@ export default function ExplorerTab({ opportunities, isAdmin, onAddOpportunity, 
         <AddOpportunityForm onAdd={onAddOpportunity} />
       )}
 
-      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "#E8C7C7" }}>
+      <div className="ledger-card p-4 sm:p-5" style={{ borderColor: "rgba(242,99,122,0.25)" }}>
         <div className="flex items-start gap-2">
           <ShieldAlert size={16} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
-          <p className="text-xs leading-relaxed opacity-80">
+          <p className="text-xs leading-relaxed text-[var(--muted)]">
             These are educational examples to explore, not a recommendation — nothing here is automatically
             suitable for you. What fits depends on your goals, timeline, and risk tolerance. Consider talking to
             a fee-only fiduciary advisor for guidance specific to your situation.
@@ -141,21 +141,21 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
           aria-label={`Name for ${opportunity.name}`}
           value={draft.name}
           onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-          className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         />
         <input
           aria-label={`Description for ${opportunity.name}`}
           value={draft.description}
           onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
           placeholder="One-line description"
-          className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+          className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         />
         <div className="flex gap-1.5">
           <select
             aria-label={`Risk level for ${opportunity.name}`}
             value={draft.risk_level}
             onChange={(e) => setDraft((d) => ({ ...d, risk_level: e.target.value }))}
-            className="text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
             {["Low", "Medium", "High"].map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -164,7 +164,7 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
             value={draft.source_url || ""}
             onChange={(e) => setDraft((d) => ({ ...d, source_url: e.target.value }))}
             placeholder="Source URL (optional)"
-            className="flex-1 text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="flex-1 text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div className="flex justify-end gap-1">
@@ -179,12 +179,12 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
               setEditing(false);
             }}
             aria-label={`Save changes to ${opportunity.name}`}
-            className="text-xs px-2 py-1 rounded"
-            style={{ background: "var(--ledger-green)", color: "#F7F3E8" }}
+            className="text-xs px-2 py-1 rounded-lg text-[var(--obsidian)]"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))" }}
           >
             Save
           </button>
-          <button onClick={() => { setDraft(opportunity); setEditing(false); }} aria-label="Cancel editing" className="opacity-50 hover:opacity-100 px-1">
+          <button onClick={() => { setDraft(opportunity); setEditing(false); }} aria-label="Cancel editing" className="text-[var(--faint)] hover:text-[var(--text)] px-1">
             <X size={14} />
           </button>
         </div>
@@ -195,7 +195,7 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
   return (
     <li className="text-xs flex items-start justify-between gap-2">
       <div>
-        <Link href={`/explorer/${opportunity.id}`} className="font-medium hover:underline" style={{ color: "var(--ink)" }}>
+        <Link href={`/explorer/${opportunity.id}`} className="font-medium hover:underline" style={{ color: "var(--text)" }}>
           {opportunity.name}
         </Link>
         <span
@@ -256,7 +256,7 @@ function AddOpportunityForm({ onAdd }) {
             id="new-opp-category"
             value={form.category_id}
             onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
             {EXPLORER_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
@@ -267,7 +267,7 @@ function AddOpportunityForm({ onAdd }) {
             id="new-opp-name"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div>
@@ -276,7 +276,7 @@ function AddOpportunityForm({ onAdd }) {
             id="new-opp-risk"
             value={form.risk_level}
             onChange={(e) => setForm((f) => ({ ...f, risk_level: e.target.value }))}
-            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
             {["Low", "Medium", "High"].map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -288,7 +288,7 @@ function AddOpportunityForm({ onAdd }) {
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="One-line, plain English"
-            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div className="col-span-2 sm:col-span-3">
@@ -298,11 +298,15 @@ function AddOpportunityForm({ onAdd }) {
             value={form.source_url}
             onChange={(e) => setForm((f) => ({ ...f, source_url: e.target.value }))}
             placeholder="https://…"
-            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-white focus:outline-none focus:border-[var(--ledger-green-soft)]"
+            className="w-full text-sm mono border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
         </div>
         <div className="col-span-2 sm:col-span-3">
-          <button type="submit" className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded text-[#F7F3E8]" style={{ background: "var(--ledger-green)" }}>
+          <button
+            type="submit"
+            className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-[var(--obsidian)]"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))", boxShadow: "0 0 14px rgba(34,211,238,0.25)" }}
+          >
             <Plus size={15} /> Add
           </button>
         </div>
