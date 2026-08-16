@@ -146,7 +146,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
             onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
             className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            {categories.map((c) => <option key={c} value={c} style={{ color: "var(--obsidian-2)" }}>{c}</option>)}
           </select>
         </td>
         {withPurpose && (
@@ -157,7 +157,7 @@ function Row({ item, categories, valueField, onUpdate, onDelete, withPurpose }) 
               onChange={(e) => setDraft((d) => ({ ...d, purpose: e.target.value }))}
               className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
             >
-              {PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+              {PURPOSES.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
             </select>
           </td>
         )}
@@ -255,7 +255,7 @@ function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurp
           onChange={(e) => handleCategoryChange(e.target.value)}
           className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
         >
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          {categories.map((c) => <option key={c} value={c} style={{ color: "var(--obsidian-2)" }}>{c}</option>)}
         </select>
       </div>
       {withPurpose && (
@@ -267,7 +267,7 @@ function AddForm({ idPrefix, categories, valueField, valueLabel, onAdd, withPurp
             onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+            {PURPOSES.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
           </select>
         </div>
       )}

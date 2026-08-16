@@ -157,7 +157,7 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
             onChange={(e) => setDraft((d) => ({ ...d, risk_level: e.target.value }))}
             className="text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {["Low", "Medium", "High"].map((r) => <option key={r} value={r}>{r}</option>)}
+            {["Low", "Medium", "High"].map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
           </select>
           <input
             aria-label={`Source URL for ${opportunity.name}`}
@@ -258,7 +258,7 @@ function AddOpportunityForm({ onAdd }) {
             onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {EXPLORER_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+            {EXPLORER_CATEGORIES.map((c) => <option key={c.id} value={c.id} style={{ color: "var(--obsidian-2)" }}>{c.title}</option>)}
           </select>
         </div>
         <div>
@@ -278,7 +278,7 @@ function AddOpportunityForm({ onAdd }) {
             onChange={(e) => setForm((f) => ({ ...f, risk_level: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {["Low", "Medium", "High"].map((r) => <option key={r} value={r}>{r}</option>)}
+            {["Low", "Medium", "High"].map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
           </select>
         </div>
         <div className="col-span-2 sm:col-span-3">
