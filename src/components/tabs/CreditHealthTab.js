@@ -218,8 +218,8 @@ function CreditProfileForm({ profile, onSave }) {
         <div>
           <label htmlFor="cp-payment-history" className={labelClass}>PAYMENT HISTORY</label>
           <select id="cp-payment-history" value={form.payment_history_status} onChange={(e) => set("payment_history_status", e.target.value)} className={inputClass}>
-            <option value="">—</option>
-            {PAYMENT_HISTORY_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+            {PAYMENT_HISTORY_OPTIONS.map((o) => <option key={o} value={o} style={{ color: "var(--obsidian-2)" }}>{o}</option>)}
           </select>
         </div>
         <div>
@@ -229,8 +229,8 @@ function CreditProfileForm({ profile, onSave }) {
         <div>
           <label htmlFor="cp-electoral-roll" className={labelClass}>ELECTORAL ROLL</label>
           <select id="cp-electoral-roll" value={form.electoral_roll_status} onChange={(e) => set("electoral_roll_status", e.target.value)} className={inputClass}>
-            <option value="">—</option>
-            {ELECTORAL_ROLL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+            {ELECTORAL_ROLL_OPTIONS.map((o) => <option key={o} value={o} style={{ color: "var(--obsidian-2)" }}>{o}</option>)}
           </select>
         </div>
         <div>

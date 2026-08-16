@@ -233,28 +233,28 @@ function EditForm({ opportunity, onSave, onCancel }) {
           <div>
             <label htmlFor="opp-risk" className={labelClass}>RISK</label>
             <select id="opp-risk" value={form.risk_level} onChange={(e) => set("risk_level", e.target.value)} className={inputClass}>
-              {RISK_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+              {RISK_OPTIONS.map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor="opp-purpose" className={labelClass}>TYPICAL PURPOSE</label>
             <select id="opp-purpose" value={form.typical_purpose} onChange={(e) => set("typical_purpose", e.target.value)} className={inputClass}>
-              <option value="">—</option>
-              {PURPOSE_OPTIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+              <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+              {PURPOSE_OPTIONS.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor="opp-liquidity" className={labelClass}>LIQUIDITY</label>
             <select id="opp-liquidity" value={form.liquidity} onChange={(e) => set("liquidity", e.target.value)} className={inputClass}>
-              <option value="">—</option>
-              {LIQUIDITY_OPTIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+              <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+              {LIQUIDITY_OPTIONS.map((l) => <option key={l} value={l} style={{ color: "var(--obsidian-2)" }}>{l}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor="opp-horizon" className={labelClass}>TIME HORIZON</label>
             <select id="opp-horizon" value={form.time_horizon} onChange={(e) => set("time_horizon", e.target.value)} className={inputClass}>
-              <option value="">—</option>
-              {HORIZON_OPTIONS.map((h) => <option key={h} value={h}>{h}</option>)}
+              <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+              {HORIZON_OPTIONS.map((h) => <option key={h} value={h} style={{ color: "var(--obsidian-2)" }}>{h}</option>)}
             </select>
           </div>
         </div>
