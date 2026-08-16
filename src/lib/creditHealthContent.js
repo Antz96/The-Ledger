@@ -71,4 +71,5 @@ export const CREDIT_ACTIONS = [
   { id: "review-debt", label: "Review existing debt.", why: "A clear picture of what's owed, and to whom, is useful groundwork before making any credit decisions." },
   { id: "dispute-incorrect-info", label: "Check whether incorrect information should be disputed.", why: "Errors on a credit file can be corrected — but only if they're spotted and raised with the relevant agency or lender." },
   { id: "understand-hard-search-timing", label: "Understand when a hard search may be created before applying for credit.", why: "Knowing this in advance can help avoid unnecessary searches close together." },
+  { id: "consider-credit-builder-card", label: "Consider a credit-builder card if your history is thin or damaged.", why: "These cards are designed for people with little or no credit history, or past problems — using one lightly and paying it off in full each month can help build a track record over time." },
 ];
