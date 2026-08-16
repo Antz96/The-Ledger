@@ -109,7 +109,12 @@ function ConnectBankForm({ onConnected }) {
   const [connectError, setConnectError] = useState("");
 
   useEffect(() => {
-    fetchInstitutions("GB")
+    // Enable Banking's Sandbox tier only exposes Finnish mock banks — a
+    // registered Production app is what unlocks real UK banks. Overridable
+    // via NEXT_PUBLIC_BANKING_COUNTRY so sandbox testing doesn't require
+    // code changes.
+    const country = process.env.NEXT_PUBLIC_BANKING_COUNTRY || "GB";
+    fetchInstitutions(country)
       .then((data) => setInstitutions(data.institutions || []))
       .catch((err) => setLoadError(err.message || "Couldn't load the list of banks."));
   }, []);
