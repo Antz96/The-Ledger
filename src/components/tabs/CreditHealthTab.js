@@ -1,11 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ShieldAlert, CheckSquare, Square, BookOpen } from "lucide-react";
+import { ShieldAlert, CheckSquare, Square, BookOpen, Info } from "lucide-react";
 import { fmt } from "@/lib/ledgerConstants";
 import {
   CREDIT_FACTORS, CREDIT_ACTIONS, CREDIT_GOALS, PAYMENT_HISTORY_OPTIONS, ELECTORAL_ROLL_OPTIONS,
+  CREDIT_PROFILE_FIELD_HELP,
 } from "@/lib/creditHealthContent";
+
+function InfoTooltip({ text }) {
+  return (
+    <span className="relative inline-flex group/tip">
+      <button
+        type="button"
+        aria-label="More information"
+        className="text-[var(--faint)] hover:text-[var(--emerald)] focus:text-[var(--emerald)] outline-none"
+      >
+        <Info size={11} />
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute z-20 left-1/2 -translate-x-1/2 bottom-full mb-1.5 w-52 rounded-lg px-2.5 py-2 text-[11px] leading-relaxed normal-case tracking-normal font-normal opacity-0 group-hover/tip:opacity-100 group-focus-within/tip:opacity-100 transition-opacity"
+        style={{ background: "var(--obsidian-2)", color: "var(--text)", border: "1px solid var(--line)", boxShadow: "0 8px 24px rgba(0,0,0,0.35)" }}
+      >
+        {text}
+      </span>
+    </span>
+  );
+}
 
 const UTIL_COLOR = (pct) => {
   if (pct === null || pct === undefined || pct === "") return "var(--text)";
@@ -197,7 +219,7 @@ function CreditProfileForm({ profile, onSave }) {
   }
 
   const inputClass = "w-full text-sm border border-[var(--line)] rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]";
-  const labelClass = "block text-[10px] mono text-[var(--muted)] mb-1";
+  const labelClass = "flex items-center gap-1 text-[10px] mono text-[var(--muted)] mb-1";
 
   const utilisationDisplay = profile?.utilisation_pct !== null && profile?.utilisation_pct !== undefined
     ? `${profile.utilisation_pct}%` : null;
@@ -216,25 +238,25 @@ function CreditProfileForm({ profile, onSave }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
         <div>
-          <label htmlFor="cp-payment-history" className={labelClass}>PAYMENT HISTORY</label>
+          <label htmlFor="cp-payment-history" className={labelClass}>PAYMENT HISTORY <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.payment_history_status} /></label>
           <select id="cp-payment-history" value={form.payment_history_status} onChange={(e) => set("payment_history_status", e.target.value)} className={inputClass}>
             <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
             {PAYMENT_HISTORY_OPTIONS.map((o) => <option key={o} value={o} style={{ color: "var(--obsidian-2)" }}>{o}</option>)}
           </select>
         </div>
         <div>
-          <label htmlFor="cp-utilisation" className={labelClass}>UTILISATION (%)</label>
+          <label htmlFor="cp-utilisation" className={labelClass}>UTILISATION (%) <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.utilisation_pct} /></label>
           <input id="cp-utilisation" type="number" min="0" max="100" step="1" value={form.utilisation_pct} onChange={(e) => set("utilisation_pct", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="cp-electoral-roll" className={labelClass}>ELECTORAL ROLL</label>
+          <label htmlFor="cp-electoral-roll" className={labelClass}>ELECTORAL ROLL <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.electoral_roll_status} /></label>
           <select id="cp-electoral-roll" value={form.electoral_roll_status} onChange={(e) => set("electoral_roll_status", e.target.value)} className={inputClass}>
             <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
             {ELECTORAL_ROLL_OPTIONS.map((o) => <option key={o} value={o} style={{ color: "var(--obsidian-2)" }}>{o}</option>)}
           </select>
         </div>
         <div>
-          <label htmlFor="cp-hard-searches" className={labelClass}>RECENT HARD SEARCHES</label>
+          <label htmlFor="cp-hard-searches" className={labelClass}>RECENT HARD SEARCHES <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.recent_hard_searches} /></label>
           <input id="cp-hard-searches" type="number" min="0" step="1" value={form.recent_hard_searches} onChange={(e) => set("recent_hard_searches", e.target.value)} className={inputClass} />
         </div>
         <div>
@@ -242,19 +264,19 @@ function CreditProfileForm({ profile, onSave }) {
           <input id="cp-account-age" type="number" min="0" step="0.5" value={form.account_age_years} onChange={(e) => set("account_age_years", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="cp-open-accounts" className={labelClass}>OPEN ACCOUNTS</label>
+          <label htmlFor="cp-open-accounts" className={labelClass}>OPEN ACCOUNTS <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.open_accounts_count} /></label>
           <input id="cp-open-accounts" type="number" min="0" step="1" value={form.open_accounts_count} onChange={(e) => set("open_accounts_count", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="cp-missed-payments" className={labelClass}>MISSED PAYMENTS</label>
+          <label htmlFor="cp-missed-payments" className={labelClass}>MISSED PAYMENTS <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.missed_payments_count} /></label>
           <input id="cp-missed-payments" type="number" min="0" step="1" value={form.missed_payments_count} onChange={(e) => set("missed_payments_count", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="cp-outstanding" className={labelClass}>OUTSTANDING BORROWING</label>
+          <label htmlFor="cp-outstanding" className={labelClass}>OUTSTANDING BORROWING <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.outstanding_borrowing} /></label>
           <input id="cp-outstanding" type="number" min="0" step="0.01" value={form.outstanding_borrowing} onChange={(e) => set("outstanding_borrowing", e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="cp-limit" className={labelClass}>TOTAL CREDIT LIMIT</label>
+          <label htmlFor="cp-limit" className={labelClass}>TOTAL CREDIT LIMIT <InfoTooltip text={CREDIT_PROFILE_FIELD_HELP.credit_limit_total} /></label>
           <input id="cp-limit" type="number" min="0" step="0.01" value={form.credit_limit_total} onChange={(e) => set("credit_limit_total", e.target.value)} className={inputClass} />
         </div>
       </div>

@@ -56,8 +56,36 @@ export const CREDIT_GOALS = [
   { id: "build-payment-history", label: "Build a longer positive payment history." },
 ];
 
-export const PAYMENT_HISTORY_OPTIONS = ["All on time", "Some missed payments", "Not sure"];
+export const PAYMENT_HISTORY_OPTIONS = [
+  "All on time",
+  "Missed payments in the last 6 months",
+  "Missed payments 6 months to 2 years ago",
+  "Missed payments 2 to 6 years ago",
+  "Missed payments over 6 years ago",
+  "Not sure",
+];
 export const ELECTORAL_ROLL_OPTIONS = ["Registered", "Not registered", "Not sure"];
+
+// Short, hover-friendly explainers for the profile form fields — deliberately
+// plain-English, distinct from CREDIT_FACTORS' longer cards below the form.
+export const CREDIT_PROFILE_FIELD_HELP = {
+  payment_history_status:
+    "Whether you've paid your credit accounts on time. Missed or late payments can stay on a credit file for a while — UK files generally keep them for around 6 years — so how recent it was matters.",
+  utilisation_pct:
+    "The percentage of your available credit you're currently using. E.g. £1,000 owed on a £4,000 limit = 25% utilisation.",
+  electoral_roll_status:
+    "Whether you're registered to vote at your current address. This helps lenders confirm who you are and where you live.",
+  recent_hard_searches:
+    "A mark left on your file each time a lender fully checks it, e.g. when you apply for credit — different from a \"soft search\", which leaves no visible mark.",
+  open_accounts_count:
+    "How many credit accounts — cards, loans, and so on — you currently have open.",
+  missed_payments_count:
+    "How many missed or late payments currently show on your file, if you know the number.",
+  outstanding_borrowing:
+    "The total amount you currently owe across all your credit accounts combined.",
+  credit_limit_total:
+    "The combined limit across all your revolving credit accounts (like credit cards) — used together with what you owe to work out utilisation.",
+};
 
 export const CREDIT_ACTIONS = [
   { id: "check-reports", label: "Check all three UK credit reports.", why: "Reports can differ between agencies, so checking each gives a fuller picture of what lenders might see." },
