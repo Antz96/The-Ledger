@@ -188,6 +188,56 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Mostly one large balance", tags: ["debt-concentrated"] },
     ],
   },
+  // Second layer, specific to the debt path — branches off q_focus_debt.
+  {
+    id: "q_debt_manageable_strategy",
+    text: "What's your approach to paying it down?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_debt?.label === "One or two manageable balances",
+    options: [
+      { label: "Already paying more than the minimum", tags: ["debt-strategy-overpaying"] },
+      { label: "Sticking to minimum payments for now", tags: ["debt-strategy-minimum"] },
+      { label: "Want to pay it off faster, not sure how", tags: ["debt-strategy-want-faster"] },
+      { label: "Not sure", tags: ["debt-strategy-unsure"] },
+    ],
+  },
+  {
+    id: "q_debt_overwhelm_picture",
+    text: "Do you have a clear picture of everything you owe?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_debt?.label === "Multiple debts, feels overwhelming",
+    options: [
+      { label: "Yes, I know exactly what and to whom", tags: ["debt-clear-picture"] },
+      { label: "Not fully — it's a bit scattered", tags: ["debt-unclear-picture"] },
+      { label: "I've thought about debt consolidation", tags: ["debt-considering-consolidation"] },
+      { label: "I think I need external debt help", tags: ["debt-needs-support"] },
+    ],
+  },
+  {
+    id: "q_debt_type",
+    text: "What type of debt is it?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_debt?.label === "Mostly one large balance",
+    options: [
+      { label: "A personal loan", tags: ["debt-type-loan"] },
+      { label: "An overdraft", tags: ["debt-type-overdraft"] },
+      { label: "Buy-now-pay-later or catalogue debt", tags: ["debt-type-bnpl"] },
+      { label: "Something else", tags: ["debt-type-other"], allowNote: true, notePlaceholder: "What kind of debt?" },
+    ],
+  },
+  // Shared across the whole debt path regardless of which branch above fired.
+  {
+    id: "q_debt_priority",
+    text: "What matters most to you right now with this debt?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Paying off debt",
+    options: [
+      { label: "Paying it off as fast as possible", tags: ["debt-priority-speed"] },
+      { label: "Keeping monthly payments manageable", tags: ["debt-priority-manageable"] },
+      { label: "Understanding my options better", tags: ["debt-priority-understand"] },
+      { label: "Not sure", tags: ["debt-priority-unsure"] },
+    ],
+  },
   {
     id: "q_focus_investing",
     text: "Where are you starting from with investing?",
