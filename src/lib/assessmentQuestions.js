@@ -110,6 +110,69 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Not sure yet", tags: [] },
     ],
   },
+  // Second layer, specific to the saving path — branches off q_focus_saving.
+  {
+    id: "q_saving_emergency_runway",
+    text: "How many months of essential expenses could your current savings cover?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_saving?.label === "An emergency fund",
+    options: [
+      { label: "None", tags: ["emergency-runway-none"] },
+      { label: "Less than 1 month", tags: ["emergency-runway-under1mo"] },
+      { label: "1–3 months", tags: ["emergency-runway-1to3mo"] },
+      { label: "3–6 months", tags: ["emergency-runway-3to6mo"] },
+      { label: "6+ months", tags: ["emergency-runway-6moplus"] },
+    ],
+  },
+  {
+    id: "q_saving_purchase_type",
+    text: "What's the big purchase?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_saving?.label === "A big purchase (house, car, etc)",
+    options: [
+      { label: "A house deposit", tags: ["purchase-house"] },
+      { label: "A car", tags: ["purchase-car"] },
+      { label: "A wedding", tags: ["purchase-wedding"] },
+      { label: "Something else", tags: ["purchase-other"] },
+    ],
+  },
+  {
+    id: "q_saving_habit_blocker",
+    text: "What's mainly getting in the way of saving consistently?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_saving?.label === "Just building the habit",
+    options: [
+      { label: "I don't have much spare money", tags: ["habit-low-spare"] },
+      { label: "I keep dipping into savings", tags: ["habit-dipping-in"] },
+      { label: "I just haven't started a system", tags: ["habit-no-system"] },
+      { label: "Not sure", tags: ["habit-unsure"] },
+    ],
+  },
+  {
+    id: "q_saving_location",
+    text: "Is your money in a dedicated savings account, or just sitting in your current account?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_saving?.label === "Not sure yet",
+    options: [
+      { label: "In a dedicated savings account", tags: ["saving-in-savings-account"] },
+      { label: "Just sitting in my current account", tags: ["saving-in-current-account"] },
+      { label: "Spread across a few places", tags: ["saving-spread-around"] },
+      { label: "Not sure", tags: ["saving-location-unsure"] },
+    ],
+  },
+  // Shared across the whole saving path regardless of which branch above fired.
+  {
+    id: "q_saving_method",
+    text: "How do you prefer to save?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Saving money",
+    options: [
+      { label: "Automatically (standing order / round-ups)", tags: ["save-method-automatic"] },
+      { label: "Manually, when I remember", tags: ["save-method-manual"] },
+      { label: "A mix of both", tags: ["save-method-mixed"] },
+      { label: "Not sure yet", tags: ["save-method-unsure"] },
+    ],
+  },
   {
     id: "q_focus_debt",
     text: "Which best describes your debt right now?",
