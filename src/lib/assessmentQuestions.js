@@ -192,7 +192,7 @@ export const ASSESSMENT_QUESTIONS = [
   },
   {
     id: "q_declined",
-    text: "Have you been turned down for credit recently?",
+    text: "Have you been rejected for credit recently?",
     type: "select",
     options: [
       { label: "Yes", tags: ["recently-declined", "credit-support"] },
@@ -222,7 +222,12 @@ export const ASSESSMENT_QUESTIONS = [
   },
   {
     id: "q_timeline",
-    text: "What's your timeline for this goal?",
+    text: (answers) => {
+      const goal = answers.q_goal?.label?.trim();
+      return goal
+        ? `Realistically, what's an honest timeframe to reach "${goal}"?`
+        : "Realistically, what's an honest timeframe for the goal you're working toward?";
+    },
     type: "select",
     options: [
       { label: "Under 1 year", tags: ["timeline-short"] },

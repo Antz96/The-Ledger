@@ -8,6 +8,10 @@ function isVisible(q, answers) {
   return !q.showIf || q.showIf(answers);
 }
 
+function resolveText(q, answers) {
+  return typeof q.text === "function" ? q.text(answers) : q.text;
+}
+
 function nextVisibleIndex(from, answers) {
   let i = from + 1;
   while (i < ASSESSMENT_QUESTIONS.length && !isVisible(ASSESSMENT_QUESTIONS[i], answers)) i++;
@@ -236,7 +240,7 @@ export default function AssessmentTab({ onSubmit, saving }) {
           <span className="text-[11px] mono text-[var(--faint)] whitespace-nowrap">{posInVisible} / {visible.length}</span>
         </div>
 
-        <p className="serif text-lg font-semibold text-[var(--text)] mb-4">{question.text}</p>
+        <p className="serif text-lg font-semibold text-[var(--text)] mb-4">{resolveText(question, answers)}</p>
 
         {question.type === "select" ? (
           <div className="space-y-2">
@@ -260,7 +264,7 @@ export default function AssessmentTab({ onSubmit, saving }) {
               onChange={(e) => setTextDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitText()}
               placeholder={question.placeholder}
-              aria-label={question.text}
+              aria-label={resolveText(question, answers)}
               className="w-full border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[var(--emerald)] bg-[var(--panel-hi)] text-[var(--text)] placeholder:text-[var(--faint)]"
               style={{ borderColor: "var(--line)" }}
             />
