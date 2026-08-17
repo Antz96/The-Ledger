@@ -98,6 +98,11 @@ export default function AssessmentTab({ onSubmit, saving }) {
   }
 
   if (phase === "review") {
+    const homeDraft = reviewDrafts.find((d) => d.category === "Property");
+    const mortgageDraft = reviewDrafts.find((d) => d.category === "Mortgage");
+    const equity = homeDraft && mortgageDraft ? Number(homeDraft.value) - Number(mortgageDraft.value) : null;
+    const ownsPortfolio = answers.q_property?.label === "Multiple properties";
+
     return (
       <div style={{ background: "var(--obsidian)", minHeight: "100dvh" }} className="flex items-center justify-center p-6">
         <div className="ledger-card w-full max-w-md p-7">
@@ -118,6 +123,15 @@ export default function AssessmentTab({ onSubmit, saving }) {
             </button>
             <p className="serif text-lg font-semibold text-[var(--text)]">Here&apos;s your starting point</p>
           </div>
+
+          {ownsPortfolio && (
+            <p
+              className="text-xs px-3 py-2 rounded-lg mb-4"
+              style={{ background: "rgba(34,211,238,0.08)", color: "var(--cyan)", border: "1px solid rgba(34,211,238,0.2)" }}
+            >
+              You mentioned multiple properties — add each one individually from Assets after this, so your net worth reflects all of them.
+            </p>
+          )}
 
           {reviewDrafts.length === 0 ? (
             <p className="text-xs text-[var(--faint)] mb-5">
@@ -159,6 +173,17 @@ export default function AssessmentTab({ onSubmit, saving }) {
                   </div>
                 ))}
               </div>
+              {equity !== null && (
+                <div
+                  className="flex items-center justify-between px-3 py-2 rounded-lg mb-5 -mt-2"
+                  style={{ background: "rgba(15,185,129,0.08)", border: "1px solid rgba(15,185,129,0.2)" }}
+                >
+                  <span className="text-xs text-[var(--muted)]">Equity in your property (value minus mortgage)</span>
+                  <span className="text-sm mono font-medium" style={{ color: equity >= 0 ? "var(--emerald)" : "var(--rust)" }}>
+                    £{equity.toLocaleString()}
+                  </span>
+                </div>
+              )}
             </>
           )}
 
