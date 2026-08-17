@@ -3,14 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Wallet, Compass, Target, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, TrendingDown,
+  LayoutDashboard, Wallet, Target, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, TrendingDown,
 } from "lucide-react";
 
 const SECTIONS = [
   { href: "/dashboard", label: "Dashboard", desc: "Income, expenses, and savings at a glance.", Icon: LayoutDashboard },
   { href: "/assets", label: "Assets", desc: "Everything you own and owe, in one place.", Icon: Wallet },
   { href: "/debt-payoff", label: "Debt Payoff", desc: "Track what you owe against what you're repaying each month.", Icon: TrendingDown },
-  { href: "/wealth-map", label: "Wealth Map", desc: "What job your money is doing: safety, growth, income, speculation.", Icon: Compass },
   { href: "/goals", label: "Goals", desc: "Track progress toward what you're saving for.", Icon: Target },
   { href: "/ledger", label: "Ledger", desc: "Every transaction, month by month.", Icon: NotebookPen },
   { href: "/allocate", label: "Allocate", desc: "Split your monthly savings across risk tiers, and see what's actually in each one.", Icon: SlidersHorizontal },
