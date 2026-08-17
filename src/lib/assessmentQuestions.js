@@ -272,6 +272,7 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Individual company shares", tags: ["invest-tried-shares"] },
       { label: "A robo-advisor or app-based investing", tags: ["invest-tried-robo"] },
       { label: "Crypto", tags: ["invest-tried-crypto"] },
+      { label: "Other", tags: ["invest-tried-other"], allowNote: true, notePlaceholder: "What else have you tried?" },
     ],
   },
   {
