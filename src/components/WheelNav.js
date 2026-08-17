@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Wallet, Target, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, TrendingDown,
+  LayoutDashboard, Wallet, Target, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, TrendingDown, Bot,
 } from "lucide-react";
 
 const SECTIONS = [
   { href: "/dashboard", label: "Dashboard", desc: "Income, expenses, and savings at a glance.", Icon: LayoutDashboard },
+  { href: "/assistant", label: "Assistant", desc: "Ask about your accounts, spending, and goals.", Icon: Bot },
   { href: "/assets", label: "Assets", desc: "Everything you own and owe, in one place.", Icon: Wallet },
   { href: "/debt-payoff", label: "Debt Payoff", desc: "Track what you owe against what you're repaying each month.", Icon: TrendingDown },
   { href: "/goals", label: "Goals", desc: "Track progress toward what you're saving for.", Icon: Target },
