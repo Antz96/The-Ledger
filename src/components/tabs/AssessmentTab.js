@@ -27,9 +27,11 @@ function prevVisibleIndex(from, answers) {
 export default function AssessmentTab({ onSubmit, saving }) {
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState("questions"); // "questions" | "review"
-  const [answers, setAnswers] = useState({}); // question_id -> { label, tags?, draft? }
+  const [answers, setAnswers] = useState({}); // question_id -> { label, tags?, draft?, note? }
   const [textDraft, setTextDraft] = useState("");
   const [reviewDrafts, setReviewDrafts] = useState([]);
+  const [notingOption, setNotingOption] = useState(null); // option awaiting a free-text elaboration
+  const [noteDraft, setNoteDraft] = useState("");
 
   const question = ASSESSMENT_QUESTIONS[step];
   const visible = ASSESSMENT_QUESTIONS.filter((q) => isVisible(q, answers));
@@ -39,6 +41,8 @@ export default function AssessmentTab({ onSubmit, saving }) {
     if (phase === "questions" && question?.type === "text") {
       setTextDraft(answers[question.id]?.label ?? "");
     }
+    setNotingOption(null);
+    setNoteDraft("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, phase]);
 
@@ -61,7 +65,22 @@ export default function AssessmentTab({ onSubmit, saving }) {
   }
 
   function selectOption(option) {
+    if (option.allowNote) {
+      setNotingOption(option);
+      setNoteDraft("");
+      return;
+    }
     const next = { ...answers, [question.id]: { label: option.label, tags: option.tags, draft: option.draft } };
+    advance(next);
+  }
+
+  function confirmNote() {
+    const next = {
+      ...answers,
+      [question.id]: { label: notingOption.label, tags: notingOption.tags, draft: notingOption.draft, note: noteDraft.trim() || undefined },
+    };
+    setNotingOption(null);
+    setNoteDraft("");
     advance(next);
   }
 
@@ -73,6 +92,11 @@ export default function AssessmentTab({ onSubmit, saving }) {
   function goBack() {
     if (phase === "review") {
       setPhase("questions");
+      return;
+    }
+    if (notingOption) {
+      setNotingOption(null);
+      setNoteDraft("");
       return;
     }
     const pi = prevVisibleIndex(step, answers);
@@ -89,10 +113,11 @@ export default function AssessmentTab({ onSubmit, saving }) {
   }
 
   function finish() {
-    const responses = ASSESSMENT_QUESTIONS.filter((q) => isVisible(q, answers)).map((q) => ({
-      question_id: q.id,
-      answer: answers[q.id]?.label ?? "",
-    }));
+    const responses = ASSESSMENT_QUESTIONS.filter((q) => isVisible(q, answers)).map((q) => {
+      const a = answers[q.id];
+      const answer = a?.note ? `${a.label} — ${a.note}` : a?.label ?? "";
+      return { question_id: q.id, answer };
+    });
     const tags = Array.from(new Set(Object.values(answers).flatMap((a) => a.tags || [])));
     const goalNote = answers.q_goal?.label?.trim() || null;
     const confirmed = reviewDrafts
@@ -226,7 +251,7 @@ export default function AssessmentTab({ onSubmit, saving }) {
         <p className="text-xs mono text-[var(--muted)] mb-5">A few quick questions so we can point you at the right content — takes about a minute.</p>
 
         <div className="flex items-center gap-2 mb-5">
-          {posInVisible > 1 && (
+          {(posInVisible > 1 || notingOption) && (
             <button onClick={goBack} aria-label="Previous question" className="text-[var(--faint)] hover:text-[var(--text)]">
               <ArrowLeft size={16} />
             </button>
@@ -243,19 +268,43 @@ export default function AssessmentTab({ onSubmit, saving }) {
         <p className="serif text-lg font-semibold text-[var(--text)] mb-4">{resolveText(question, answers)}</p>
 
         {question.type === "select" ? (
-          <div className="space-y-2">
-            {question.options.map((opt) => (
+          notingOption ? (
+            <div>
+              <p className="text-xs text-[var(--faint)] mb-2">You picked "{notingOption.label}" — want to add any detail?</p>
+              <input
+                autoFocus
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && confirmNote()}
+                placeholder={notingOption.notePlaceholder || "Optional"}
+                aria-label={notingOption.notePlaceholder || `Detail for ${notingOption.label}`}
+                className="w-full border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[var(--emerald)] bg-[var(--panel-hi)] text-[var(--text)] placeholder:text-[var(--faint)]"
+                style={{ borderColor: "var(--line)" }}
+              />
               <button
-                key={opt.label}
-                onClick={() => selectOption(opt)}
+                onClick={confirmNote}
                 disabled={saving}
-                className="w-full text-left text-sm px-4 py-2.5 rounded-lg border hover:bg-[var(--panel-hi)] disabled:opacity-50 text-[var(--text)]"
-                style={{ borderColor: "var(--line)", background: "var(--panel-lo)" }}
+                className="w-full py-2.5 rounded-lg text-sm font-medium text-[var(--obsidian)] disabled:opacity-60"
+                style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))", boxShadow: "0 0 20px rgba(34,211,238,0.25)" }}
               >
-                {opt.label}
+                {noteDraft.trim() ? "Continue" : "Skip"}
               </button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {question.options.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => selectOption(opt)}
+                  disabled={saving}
+                  className="w-full text-left text-sm px-4 py-2.5 rounded-lg border hover:bg-[var(--panel-hi)] disabled:opacity-50 text-[var(--text)]"
+                  style={{ borderColor: "var(--line)", background: "var(--panel-lo)" }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )
         ) : (
           <div>
             <input

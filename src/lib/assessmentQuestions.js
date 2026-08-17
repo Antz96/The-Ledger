@@ -5,6 +5,10 @@
 // AssessmentTab's review step). Q_goal is free text, stored but never
 // tagged or drafted. `showIf` lets a question depend on an earlier answer
 // (e.g. mortgage balance only appears if they said they have a mortgage).
+// `allowNote` on an option (with an optional `notePlaceholder`) prompts for
+// a short free-text elaboration after it's picked — use it on genuine
+// catch-all choices ("Something else"), not on "not sure" style options
+// where there's nothing to elaborate on.
 
 export const ASSESSMENT_QUESTIONS = [
   {
@@ -100,7 +104,7 @@ export const ASSESSMENT_QUESTIONS = [
   },
   {
     id: "q_focus_saving",
-    text: "What's the savings goal closest to home?",
+    text: "Which of these best describes what you're saving for right now?",
     type: "select",
     showIf: (answers) => answers.q_focus?.label === "Saving money",
     options: [
@@ -133,7 +137,7 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "A house deposit", tags: ["purchase-house"] },
       { label: "A car", tags: ["purchase-car"] },
       { label: "A wedding", tags: ["purchase-wedding"] },
-      { label: "Something else", tags: ["purchase-other"] },
+      { label: "Something else", tags: ["purchase-other"], allowNote: true, notePlaceholder: "What's the purchase?" },
     ],
   },
   {
