@@ -249,6 +249,56 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Have some, want to be more consistent", tags: ["investing-inconsistent"] },
     ],
   },
+  // Second layer, specific to the investing path — branches off q_focus_investing.
+  {
+    id: "q_invest_new_blocker",
+    text: "What's stopping you from getting started?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_investing?.label === "Never invested before",
+    options: [
+      { label: "Don't know where to begin", tags: ["invest-block-knowledge"] },
+      { label: "Worried about losing money", tags: ["invest-block-risk-fear"] },
+      { label: "Don't have spare money to invest", tags: ["invest-block-no-spare"] },
+      { label: "Just haven't gotten around to it", tags: ["invest-block-procrastination"] },
+    ],
+  },
+  {
+    id: "q_invest_dabbled_tried",
+    text: "What have you tried so far?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_investing?.label === "Dabbled a little",
+    options: [
+      { label: "A stocks & shares ISA", tags: ["invest-tried-isa"] },
+      { label: "Individual company shares", tags: ["invest-tried-shares"] },
+      { label: "A robo-advisor or app-based investing", tags: ["invest-tried-robo"] },
+      { label: "Crypto", tags: ["invest-tried-crypto"] },
+    ],
+  },
+  {
+    id: "q_invest_consistency_blocker",
+    text: "What gets in the way of investing regularly?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_investing?.label === "Have some, want to be more consistent",
+    options: [
+      { label: "I forget", tags: ["invest-consistency-forget"] },
+      { label: "Money's tight some months", tags: ["invest-consistency-money-tight"] },
+      { label: "Not sure I'm doing it right", tags: ["invest-consistency-unsure-right"] },
+      { label: "Market ups and downs put me off", tags: ["invest-consistency-market-fear"] },
+    ],
+  },
+  // Shared across the whole investing path regardless of which branch above fired.
+  {
+    id: "q_invest_purpose",
+    text: "What's the investing mainly for?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Starting to invest",
+    options: [
+      { label: "Long-term growth (retirement, wealth building)", tags: ["invest-purpose-longterm"] },
+      { label: "A specific goal in the next few years", tags: ["invest-purpose-goal"] },
+      { label: "Just want my money working harder than sitting in cash", tags: ["invest-purpose-beat-cash"] },
+      { label: "Not sure yet", tags: ["invest-purpose-unsure"] },
+    ],
+  },
   {
     id: "q_focus_sustain",
     text: "What matters most to you right now?",
