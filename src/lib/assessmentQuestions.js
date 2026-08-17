@@ -312,6 +312,68 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Tax efficiency", tags: ["wealth-tax-efficiency"] },
     ],
   },
+  // Second layer, specific to the sustain-wealth path — branches off q_focus_sustain.
+  {
+    id: "q_sustain_allocation_concern",
+    text: "What's your main allocation concern?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_sustain?.label === "Making sure my money's well allocated",
+    options: [
+      { label: "Too much in cash, not growing", tags: ["alloc-too-much-cash"] },
+      { label: "Too concentrated in one thing", tags: ["alloc-concentrated"] },
+      { label: "Not sure how it's spread across accounts", tags: ["alloc-unsure-spread"] },
+      { label: "Want a second opinion on my mix", tags: ["alloc-second-opinion"] },
+    ],
+  },
+  {
+    id: "q_sustain_risk_driver",
+    text: "What's prompting the focus on risk right now?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_sustain?.label === "Reducing risk",
+    options: [
+      { label: "Getting closer to retirement", tags: ["risk-nearing-retirement"] },
+      { label: "Market volatility has made me nervous", tags: ["risk-market-volatility"] },
+      { label: "I took on more risk than I meant to", tags: ["risk-overexposed"] },
+      { label: "Just being prudent", tags: ["risk-prudent"] },
+    ],
+  },
+  {
+    id: "q_sustain_performance_tracking",
+    text: "How do you currently keep track of performance?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_sustain?.label === "Reviewing performance regularly",
+    options: [
+      { label: "I check occasionally, no real system", tags: ["perf-occasional"] },
+      { label: "I have a regular review habit already", tags: ["perf-has-habit"] },
+      { label: "I don't really track it — that's the problem", tags: ["perf-no-tracking"] },
+      { label: "I use another app or spreadsheet", tags: ["perf-other-tool"] },
+    ],
+  },
+  {
+    id: "q_sustain_tax_focus",
+    text: "What's the tax angle you're most focused on?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_sustain?.label === "Tax efficiency",
+    options: [
+      { label: "Using up ISA/pension allowances", tags: ["tax-allowances"] },
+      { label: "Capital gains tax", tags: ["tax-cgt"] },
+      { label: "Inheritance planning", tags: ["tax-inheritance"] },
+      { label: "Not sure, just want to be efficient", tags: ["tax-unsure"] },
+    ],
+  },
+  // Shared across the whole sustain-wealth path regardless of which branch above fired.
+  {
+    id: "q_sustain_involvement",
+    text: "How involved do you want to be, day-to-day?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Growing and managing what I already have",
+    options: [
+      { label: "Hands-on, I like to manage things myself", tags: ["sustain-hands-on"] },
+      { label: "Hands-off, I just want oversight", tags: ["sustain-hands-off"] },
+      { label: "A mix — hands-on for some things, not others", tags: ["sustain-mixed"] },
+      { label: "Not sure yet", tags: ["sustain-unsure"] },
+    ],
+  },
   {
     id: "q_goal",
     text: "Anything specific you're working toward?",
