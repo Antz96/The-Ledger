@@ -16,7 +16,69 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Saving money", tags: ["saving"] },
       { label: "Paying off debt", tags: ["debt"] },
       { label: "Starting to invest", tags: ["investing"] },
+      { label: "Growing and managing what I already have", tags: ["wealth-management"] },
       { label: "Not sure yet", tags: [] },
+    ],
+  },
+  // The five questions below are mutually exclusive follow-ups keyed off
+  // q_focus — only one is ever visible, tailoring the rest of the quiz
+  // toward whichever route the first answer points at.
+  {
+    id: "q_focus_credit",
+    text: "What's the main thing holding your credit back right now?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Building credit",
+    options: [
+      { label: "No credit history yet", tags: ["credit-thin-file"] },
+      { label: "Missed payments in the past", tags: ["credit-missed-payments"] },
+      { label: "High balances on cards", tags: ["credit-high-utilisation"] },
+      { label: "Not sure what's holding me back", tags: ["credit-unsure"] },
+    ],
+  },
+  {
+    id: "q_focus_saving",
+    text: "What's the savings goal closest to home?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Saving money",
+    options: [
+      { label: "An emergency fund", tags: ["goal-emergency-fund"] },
+      { label: "A big purchase (house, car, etc)", tags: ["goal-big-purchase"] },
+      { label: "Just building the habit", tags: ["goal-habit"] },
+      { label: "Not sure yet", tags: [] },
+    ],
+  },
+  {
+    id: "q_focus_debt",
+    text: "Which best describes your debt right now?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Paying off debt",
+    options: [
+      { label: "One or two manageable balances", tags: ["debt-manageable"] },
+      { label: "Multiple debts, feels overwhelming", tags: ["debt-overwhelming"] },
+      { label: "Mostly one large balance", tags: ["debt-concentrated"] },
+    ],
+  },
+  {
+    id: "q_focus_investing",
+    text: "Where are you starting from with investing?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Starting to invest",
+    options: [
+      { label: "Never invested before", tags: ["investing-new"] },
+      { label: "Dabbled a little", tags: ["investing-dabbled"] },
+      { label: "Have some, want to be more consistent", tags: ["investing-inconsistent"] },
+    ],
+  },
+  {
+    id: "q_focus_sustain",
+    text: "What matters most to you right now?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Growing and managing what I already have",
+    options: [
+      { label: "Making sure my money's well allocated", tags: ["wealth-allocation"] },
+      { label: "Reducing risk", tags: ["wealth-risk-review"] },
+      { label: "Reviewing performance regularly", tags: ["wealth-performance-review"] },
+      { label: "Tax efficiency", tags: ["wealth-tax-efficiency"] },
     ],
   },
   {
