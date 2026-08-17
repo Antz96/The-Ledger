@@ -35,6 +35,69 @@ export const ASSESSMENT_QUESTIONS = [
       { label: "Not sure what's holding me back", tags: ["credit-unsure"] },
     ],
   },
+  // Second layer, specific to the credit path — branches again off q_focus_credit
+  // so someone with a thin file gets a different follow-up than someone
+  // recovering from missed payments.
+  {
+    id: "q_credit_thinfile",
+    text: "Do you currently have any credit product in your name at all?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_credit?.label === "No credit history yet",
+    options: [
+      { label: "No credit at all yet", tags: ["credit-truly-thin"] },
+      { label: "Just a mobile phone contract", tags: ["credit-phone-only"] },
+      { label: "A credit-builder card", tags: ["credit-builder-active"] },
+      { label: "A different card or loan", tags: ["credit-other-active"] },
+    ],
+  },
+  {
+    id: "q_credit_missed_recency",
+    text: "How long ago was your most recent missed payment?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_credit?.label === "Missed payments in the past",
+    options: [
+      { label: "Within the last 6 months", tags: ["credit-miss-recent"] },
+      { label: "6 months to 2 years ago", tags: ["credit-miss-1to2yr"] },
+      { label: "More than 2 years ago", tags: ["credit-miss-old"] },
+      { label: "Not sure", tags: ["credit-miss-unsure"] },
+    ],
+  },
+  {
+    id: "q_credit_overpay",
+    text: "Are you able to pay more than the minimum each month?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_credit?.label === "High balances on cards",
+    options: [
+      { label: "Yes, comfortably", tags: ["credit-can-overpay"] },
+      { label: "Yes, but it's tight", tags: ["credit-tight-overpay"] },
+      { label: "No, only the minimum", tags: ["credit-minimum-only", "credit-support"] },
+      { label: "Not sure", tags: ["credit-utilisation-unsure"] },
+    ],
+  },
+  {
+    id: "q_credit_report_check",
+    text: "Have you checked your credit report in the last 12 months?",
+    type: "select",
+    showIf: (answers) => answers.q_focus_credit?.label === "Not sure what's holding me back",
+    options: [
+      { label: "Yes", tags: ["credit-report-checked"] },
+      { label: "No", tags: ["credit-report-not-checked"] },
+      { label: "Not sure how to", tags: ["credit-report-unsure-how"] },
+    ],
+  },
+  // Shared across the whole credit path regardless of which branch above fired.
+  {
+    id: "q_credit_goal",
+    text: "Is there something specific you need good credit for, or is this about building healthy credit generally?",
+    type: "select",
+    showIf: (answers) => answers.q_focus?.label === "Building credit",
+    options: [
+      { label: "A mortgage", tags: ["credit-goal-mortgage"] },
+      { label: "A car or other loan", tags: ["credit-goal-loan"] },
+      { label: "Just building healthy credit generally", tags: ["credit-goal-general"] },
+      { label: "Not sure yet", tags: [] },
+    ],
+  },
   {
     id: "q_focus_saving",
     text: "What's the savings goal closest to home?",
