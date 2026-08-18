@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Landmark, PiggyBank, Plus, Pencil, Trash2, TrendingDown, Wallet, X } from "lucide-react";
 import { fmt } from "@/lib/ledgerConstants";
 import SummaryCard from "@/components/ui/SummaryCard";
+import StatementUpload from "@/components/ui/StatementUpload";
 
 const ASSET_CATEGORIES = ["Cash", "Investments", "Pension", "Property", "Crypto", "Other"];
 const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"];
@@ -119,6 +120,7 @@ function Section({ title, idPrefix, icon, items, categories, valueField, valueLa
           </table>
         </div>
       )}
+      <StatementUpload label={`Upload a statement to add ${title.toLowerCase()} automatically`} />
       <AddForm idPrefix={idPrefix} categories={categories} valueField={valueField} valueLabel={valueLabel} onAdd={onAdd} withPurpose={withPurpose} />
     </div>
   );

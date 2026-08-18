@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
 import { fmt, currencySymbol } from "@/lib/ledgerConstants";
 import { EXPLORER_CATEGORIES, RISK_FILTERS } from "@/lib/explorerCategories";
+import StatementUpload from "@/components/ui/StatementUpload";
 
 const RISK_COLOR = { Low: "var(--ledger-green-soft)", Medium: "var(--gold)", High: "var(--rust)" };
 
@@ -70,6 +71,14 @@ export default function AllocateTab({ alloc, onUpdateAlloc, opportunities, isAdm
         <div className="text-xs mono mt-2" style={{ color: allocSum === 100 ? "var(--muted)" : "var(--rust)" }}>
           {allocSum === 100 ? `Totals 100% — ${fmt(alloc.monthly)}/month allocated.` : `Totals ${allocSum}% — adjust sliders so they add to 100%.`}
         </div>
+      </div>
+
+      <div className="ledger-card overflow-hidden">
+        <StatementUpload
+          label="Not sure what's left over? Upload a payslip and I'll work it out"
+          className="px-4 sm:px-5 py-3"
+          doneDetail="Once it's switched on, I'll read your payslip, account for what's already going out, and show you what's left over — how you allocate it from there is entirely up to you. We're not financial advisors, so we won't tell you where to put it."
+        />
       </div>
 
       <div className="ledger-card p-4 sm:p-5">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { fmt, currencySymbol, monthLabel, monthKey, TYPE_META } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
+import StatementUpload from "@/components/ui/StatementUpload";
 
 export default function LedgerTab({ transactions, activeMonth, setActiveMonth, onAdd, onDelete }) {
   const { monthTx, shiftMonth } = useMonthNav(transactions, activeMonth, setActiveMonth);
@@ -101,6 +102,10 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
           </button>
         </form>
         {formError && <p className="text-xs mt-2" style={{ color: "var(--rust)" }}>{formError}</p>}
+      </div>
+
+      <div className="ledger-card overflow-hidden mb-6">
+        <StatementUpload label="Upload a bank or card statement to add entries automatically" className="px-4 sm:px-5 py-3" />
       </div>
 
       <div className="ledger-card overflow-hidden">
