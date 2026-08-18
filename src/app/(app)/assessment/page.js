@@ -17,7 +17,7 @@ export default function AssessmentPage() {
         await handleAddLiability({ name: draft.name, category: draft.category, balance: draft.value });
       }
     }
-    router.replace("/dashboard");
+    router.replace("/welcome");
   }
 
   return <AssessmentTab onSubmit={onSubmit} saving={saving} />;
