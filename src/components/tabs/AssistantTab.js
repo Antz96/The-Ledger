@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Bot, Send, User, Sparkles } from "lucide-react";
+import { sendAssistantMessage } from "@/lib/assistantApi";
 
 const EXAMPLE_PROMPTS = [
   "What's my net worth right now?",
@@ -10,34 +11,38 @@ const EXAMPLE_PROMPTS = [
   "Am I on track for my savings goal?",
 ];
 
-const PROTOTYPE_REPLY =
-  "This is a look-and-feel preview — I'm not connected to your real data yet. Once the AI backend is wired up, " +
-  "I'll answer this using your actual accounts, transactions, and goals instead of a placeholder reply.";
-
-function makeMessage(role, text) {
-  return { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, role, text };
+function makeMessage(role, text, opts = {}) {
+  return { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, role, text, ...opts };
 }
 
 export default function AssistantTab({ displayName }) {
   const [messages, setMessages] = useState([
     makeMessage(
       "assistant",
-      `Hi${displayName ? ` ${displayName}` : ""} — I'm a prototype for now, so I can't see your real numbers yet, but this is what talking to me will feel like. Try one of the prompts below, or type your own.`
+      `Hi${displayName ? ` ${displayName}` : ""} — ask me about your accounts, spending, or goals and I'll pull the real numbers. I can show you what's there, but I won't tell you what to do with it — I'm not a financial advisor.`,
+      { synthetic: true }
     ),
   ]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-  function send(text) {
+  async function send(text) {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
+    const history = messages.filter((m) => !m.synthetic).map((m) => ({ role: m.role, content: m.text }));
     setMessages((prev) => [...prev, makeMessage("user", trimmed)]);
     setDraft("");
     setSending(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, makeMessage("assistant", PROTOTYPE_REPLY)]);
+    setError("");
+    try {
+      const reply = await sendAssistantMessage([...history, { role: "user", content: trimmed }]);
+      setMessages((prev) => [...prev, makeMessage("assistant", reply)]);
+    } catch (err) {
+      setError(err.message || "Couldn't reach the assistant.");
+    } finally {
       setSending(false);
-    }, 500);
+    }
   }
 
   return (
@@ -47,9 +52,8 @@ export default function AssistantTab({ displayName }) {
           <Sparkles size={15} /> Assistant
         </p>
         <p className="text-xs text-[var(--faint)]">
-          Prototype — this is a preview of the look and feel only. It isn&apos;t connected to your accounts,
-          transactions, or goals yet, so nothing you type here is read or stored. Real answers come once the AI
-          backend is switched on.
+          Reads your real accounts, transactions, goals, and allocation settings to answer questions — but doesn&apos;t
+          advise on decisions. Not a licensed financial advisor.
         </p>
       </div>
 
@@ -59,6 +63,7 @@ export default function AssistantTab({ displayName }) {
             <MessageBubble key={m.id} message={m} />
           ))}
           {sending && <TypingBubble />}
+          {error && <p className="text-xs" style={{ color: "var(--rust)" }}>{error}</p>}
         </div>
 
         <div className="px-4 sm:px-5 pb-3 flex flex-wrap gap-1.5">
