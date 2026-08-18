@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut, X } from "lucide-react";
+import Link from "next/link";
+import { LogOut, HelpCircle, X } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
 import WheelNav from "@/components/WheelNav";
@@ -42,6 +43,9 @@ export default function AppShell({ children }) {
               ))}
             </select>
             <span className="text-[11px] mono text-[var(--muted)]">{saving ? "saving…" : "synced"}</span>
+            <Link href="/welcome" aria-label="Guide to every section" title="Guide" className="text-[var(--muted)] hover:text-[var(--text)]">
+              <HelpCircle size={16} />
+            </Link>
             <button onClick={handleSignOut} className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--text)]">
               <LogOut size={13} /> Sign out
             </button>
