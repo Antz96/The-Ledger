@@ -20,5 +20,5 @@ export async function sendAssistantMessage(messages) {
     err.status = res.status;
     throw err;
   }
-  return body.reply;
+  return { reply: body.reply, redirectTo: body.redirectTo || null };
 }

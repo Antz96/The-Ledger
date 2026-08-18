@@ -1,6 +1,7 @@
 // Server-only. Tools the Assistant can call, each scoped to the signed-in user
 // via their own RLS-scoped Supabase client — Claude never sees another user's data.
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
+import { SECTIONS } from "@/lib/navSections";
 
 function monthsBetween(from, to) {
   const a = new Date(from);
@@ -40,7 +41,10 @@ function projectGoal(goal) {
   return { projectedSaved, progressPct: Math.round(progressPct), remaining, projectedDate, onTrack };
 }
 
-export function buildAssistantTools(supabase, userId) {
+// `ctx` is a plain object the route handler reads after the tool loop finishes —
+// it's how a tool with no other return value (navigation) can signal an action
+// back to the client, since only the final text reaches the HTTP response.
+export function buildAssistantTools(supabase, userId, ctx) {
   const getNetWorth = betaTool({
     name: "get_net_worth",
     description:
@@ -138,5 +142,60 @@ export function buildAssistantTools(supabase, userId) {
     },
   });
 
-  return [getNetWorth, getTransactions, getGoals, getAllocation];
+  const createSavingsGoal = betaTool({
+    name: "create_savings_goal",
+    description:
+      "Create a new savings goal for the user. Only call this after you've confirmed the name, target amount, " +
+      "and a monthly contribution with them in the conversation — never create one from a vague request without " +
+      "checking the numbers first. If they don't know how much they can contribute, work it out from their real " +
+      "income and expenses (via get_transactions) rather than guessing, propose a figure, and confirm it with " +
+      "them before creating.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "e.g. Emergency fund, House deposit" },
+        target_amount: { type: "number", description: "Total amount to save toward. Must be greater than 0." },
+        starting_amount: { type: "number", description: "How much is already saved toward this goal. Defaults to 0 if omitted." },
+        monthly_contribution: { type: "number", description: "How much they plan to add each month. Defaults to 0 if omitted." },
+        target_date: { type: "string", description: "YYYY-MM-DD target date, if they gave one." },
+      },
+      required: ["name", "target_amount"],
+    },
+    run: async (input) => {
+      const row = {
+        name: String(input.name || "").trim(),
+        target_amount: Number(input.target_amount) || 0,
+        starting_amount: Number(input.starting_amount) || 0,
+        monthly_contribution: Number(input.monthly_contribution) || 0,
+        target_date: input.target_date || null,
+      };
+      if (!row.name || row.target_amount <= 0) {
+        return JSON.stringify({ error: "Need a name and a target amount greater than zero." });
+      }
+      const { data, error } = await supabase.from("financial_goals").insert({ user_id: userId, ...row }).select().single();
+      if (error) return JSON.stringify({ error: error.message });
+      return JSON.stringify({ created: true, goal: data });
+    },
+  });
+
+  const goToPage = betaTool({
+    name: "go_to_page",
+    description:
+      "Send the user's app to a specific section, e.g. right after creating something so they can see it, or " +
+      "when they ask to be shown a section. Call this alongside your normal text reply, not instead of it — " +
+      "always still explain what's happening in your written answer.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string", enum: SECTIONS.map((s) => s.href), description: "The section to navigate to." },
+      },
+      required: ["path"],
+    },
+    run: async (input) => {
+      if (SECTIONS.some((s) => s.href === input.path)) ctx.redirectTo = input.path;
+      return JSON.stringify({ navigated: Boolean(ctx.redirectTo) });
+    },
+  });
+
+  return [getNetWorth, getTransactions, getGoals, getAllocation, createSavingsGoal, goToPage];
 }

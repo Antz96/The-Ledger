@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Bot, Send, User, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Bot, Send, User, Sparkles, ArrowRight } from "lucide-react";
 import { sendAssistantMessage } from "@/lib/assistantApi";
+import { SECTIONS } from "@/lib/navSections";
 
 const EXAMPLE_PROMPTS = [
   "What's my net worth right now?",
@@ -16,16 +18,18 @@ function makeMessage(role, text, opts = {}) {
 }
 
 export default function AssistantTab({ displayName }) {
+  const router = useRouter();
   const [messages, setMessages] = useState([
     makeMessage(
       "assistant",
-      `Hi${displayName ? ` ${displayName}` : ""} — ask me about your accounts, spending, or goals and I'll pull the real numbers. I can show you what's there, but I won't tell you what to do with it — I'm not a financial advisor.`,
+      `Hi${displayName ? ` ${displayName}` : ""} — ask me about your accounts, spending, or goals and I'll pull the real numbers. I can also set things up for you, like a savings goal, and take you to the right section. I won't tell you what to do with your money, though — I'm not a financial advisor.`,
       { synthetic: true }
     ),
   ]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [redirecting, setRedirecting] = useState(null);
 
   async function send(text) {
     const trimmed = text.trim();
@@ -36,8 +40,13 @@ export default function AssistantTab({ displayName }) {
     setSending(true);
     setError("");
     try {
-      const reply = await sendAssistantMessage([...history, { role: "user", content: trimmed }]);
+      const { reply, redirectTo } = await sendAssistantMessage([...history, { role: "user", content: trimmed }]);
       setMessages((prev) => [...prev, makeMessage("assistant", reply)]);
+      if (redirectTo) {
+        const section = SECTIONS.find((s) => s.href === redirectTo);
+        setRedirecting(section?.label || redirectTo);
+        setTimeout(() => router.push(redirectTo), 1400);
+      }
     } catch (err) {
       setError(err.message || "Couldn't reach the assistant.");
     } finally {
@@ -63,6 +72,11 @@ export default function AssistantTab({ displayName }) {
             <MessageBubble key={m.id} message={m} />
           ))}
           {sending && <TypingBubble />}
+          {redirecting && (
+            <p className="text-xs flex items-center gap-1 text-[var(--muted)]">
+              Taking you to {redirecting} <ArrowRight size={12} />
+            </p>
+          )}
           {error && <p className="text-xs" style={{ color: "var(--rust)" }}>{error}</p>}
         </div>
 
