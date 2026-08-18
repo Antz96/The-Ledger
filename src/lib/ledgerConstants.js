@@ -8,6 +8,21 @@ export const TYPE_META = {
   savings: { label: "Savings", color: "#D9B44A", cats: SAVINGS_CATS },
 };
 
+export const ASSET_CATEGORIES = ["Cash", "Investments", "Pension", "Property", "Crypto", "Other"];
+export const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"];
+
+// What job is this money doing? Defaults from category, but always editable — the whole point is
+// that "Investments" could be a Growth fund or an Income bond, and the person adding it knows which.
+export const ASSET_PURPOSES = ["Safety", "Growth", "Income", "Speculation"];
+export const CATEGORY_PURPOSE_DEFAULT = {
+  Cash: "Safety",
+  Investments: "Growth",
+  Pension: "Growth",
+  Property: "Income",
+  Crypto: "Speculation",
+  Other: "Growth",
+};
+
 export const PIE_COLORS = ["#0FB981", "#22D3EE", "#D9B44A", "#F2637A", "#8B7FD9", "#3D4A5C", "#1F6F63", "#E0A458"];
 
 export function monthKey(d) {

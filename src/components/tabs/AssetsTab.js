@@ -2,25 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { Landmark, PiggyBank, Plus, Pencil, Trash2, TrendingDown, Wallet, X } from "lucide-react";
-import { fmt } from "@/lib/ledgerConstants";
+import {
+  fmt,
+  ASSET_CATEGORIES,
+  LIABILITY_CATEGORIES,
+  ASSET_PURPOSES as PURPOSES,
+  CATEGORY_PURPOSE_DEFAULT,
+} from "@/lib/ledgerConstants";
 import SummaryCard from "@/components/ui/SummaryCard";
 import StatementUpload from "@/components/ui/StatementUpload";
-
-const ASSET_CATEGORIES = ["Cash", "Investments", "Pension", "Property", "Crypto", "Other"];
-const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"];
-
-// What job is this money doing? (blueprint section 6) Defaults from category,
-// but always editable — the whole point is that "Investments" could be a
-// Growth fund or an Income bond, and the person adding it knows which.
-const PURPOSES = ["Safety", "Growth", "Income", "Speculation"];
-const CATEGORY_PURPOSE_DEFAULT = {
-  Cash: "Safety",
-  Investments: "Growth",
-  Pension: "Growth",
-  Property: "Income",
-  Crypto: "Speculation",
-  Other: "Growth",
-};
 
 export default function AssetsTab({
   assets,
@@ -65,6 +55,7 @@ export default function AssetsTab({
         onDelete={onDeleteAsset}
         emptyText="No assets added yet."
         withPurpose
+        extractKind="assets"
       />
 
       <Section
@@ -79,12 +70,49 @@ export default function AssetsTab({
         onUpdate={onUpdateLiability}
         onDelete={onDeleteLiability}
         emptyText="No liabilities added yet."
+        extractKind="liabilities"
       />
     </div>
   );
 }
 
-function Section({ title, idPrefix, icon, items, categories, valueField, valueLabel, onAdd, onUpdate, onDelete, emptyText, withPurpose }) {
+function Section({ title, idPrefix, icon, items, categories, valueField, valueLabel, onAdd, onUpdate, onDelete, emptyText, withPurpose, extractKind }) {
+  const [pending, setPending] = useState(null);
+  const [adding, setAdding] = useState(false);
+
+  function handleExtracted(result) {
+    const rows = (result.items || []).map((item, i) => ({
+      _key: `${Date.now()}-${i}`,
+      include: true,
+      name: item.name || "",
+      category: categories.includes(item.category) ? item.category : categories[0],
+      purpose: withPurpose
+        ? PURPOSES.includes(item.purpose) ? item.purpose : (CATEGORY_PURPOSE_DEFAULT[item.category] || PURPOSES[0])
+        : undefined,
+      [valueField]: Number(item[valueField]) || 0,
+    }));
+    setPending(rows);
+  }
+
+  function updateRow(key, patch) {
+    setPending((rows) => rows.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  }
+
+  function removeRow(key) {
+    setPending((rows) => rows.filter((r) => r._key !== key));
+  }
+
+  async function confirmImport() {
+    setAdding(true);
+    for (const row of pending.filter((r) => r.include)) {
+      const entry = { name: row.name.trim() || "Untitled", category: row.category, [valueField]: Number(row[valueField]) || 0 };
+      if (withPurpose) entry.purpose = row.purpose;
+      await onAdd(entry);
+    }
+    setAdding(false);
+    setPending(null);
+  }
+
   return (
     <div className="ledger-card overflow-hidden">
       <p className="serif text-sm tracking-wide opacity-80 px-4 sm:px-5 pt-4 pb-2 flex items-center gap-1.5">
@@ -120,8 +148,113 @@ function Section({ title, idPrefix, icon, items, categories, valueField, valueLa
           </table>
         </div>
       )}
-      <StatementUpload label={`Upload a statement to add ${title.toLowerCase()} automatically`} />
+
+      {pending ? (
+        <ImportReview
+          rows={pending}
+          categories={categories}
+          valueField={valueField}
+          valueLabel={valueLabel}
+          withPurpose={withPurpose}
+          onUpdateRow={updateRow}
+          onRemoveRow={removeRow}
+          onConfirm={confirmImport}
+          onDiscard={() => setPending(null)}
+          adding={adding}
+        />
+      ) : (
+        <StatementUpload
+          kind={extractKind}
+          label={`Upload a statement to add ${title.toLowerCase()} automatically`}
+          onResult={handleExtracted}
+        />
+      )}
       <AddForm idPrefix={idPrefix} categories={categories} valueField={valueField} valueLabel={valueLabel} onAdd={onAdd} withPurpose={withPurpose} />
+    </div>
+  );
+}
+
+function ImportReview({ rows, categories, valueField, valueLabel, withPurpose, onUpdateRow, onRemoveRow, onConfirm, onDiscard, adding }) {
+  const includedCount = rows.filter((r) => r.include).length;
+
+  return (
+    <div className="px-4 sm:px-5 py-4 border-t" style={{ borderColor: "var(--line)" }}>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-[var(--muted)]">
+          {rows.length === 0
+            ? "Nothing found in that PDF."
+            : `Found ${rows.length} ${rows.length === 1 ? "entry" : "entries"} — review before adding.`}
+        </p>
+        <button onClick={onDiscard} aria-label="Discard extracted entries" className="text-[var(--faint)] hover:text-[var(--text)]">
+          <X size={14} />
+        </button>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {rows.map((row) => (
+            <div key={row._key} className={`grid grid-cols-[auto_1fr_1fr_${withPurpose ? "1fr_" : ""}1fr_auto] gap-2 items-center`}>
+              <input
+                type="checkbox"
+                checked={row.include}
+                onChange={(e) => onUpdateRow(row._key, { include: e.target.checked })}
+                aria-label={`Include ${row.name || "this entry"}`}
+                className="w-3.5 h-3.5"
+              />
+              <input
+                value={row.name}
+                onChange={(e) => onUpdateRow(row._key, { name: e.target.value })}
+                aria-label="Name"
+                className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              />
+              <select
+                value={row.category}
+                onChange={(e) => onUpdateRow(row._key, { category: e.target.value })}
+                aria-label="Category"
+                className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              >
+                {categories.map((c) => <option key={c} value={c} style={{ color: "var(--obsidian-2)" }}>{c}</option>)}
+              </select>
+              {withPurpose && (
+                <select
+                  value={row.purpose}
+                  onChange={(e) => onUpdateRow(row._key, { purpose: e.target.value })}
+                  aria-label="Purpose"
+                  className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+                >
+                  {PURPOSES.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
+                </select>
+              )}
+              <input
+                type="number" min="0" step="0.01"
+                value={row[valueField]}
+                onChange={(e) => onUpdateRow(row._key, { [valueField]: e.target.value })}
+                aria-label={valueLabel}
+                className="w-full text-xs mono text-right border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              />
+              <button onClick={() => onRemoveRow(row._key)} aria-label="Remove this entry" className="text-[var(--faint)] hover:text-[var(--text)]">
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        {rows.length > 0 && (
+          <button
+            onClick={onConfirm}
+            disabled={includedCount === 0 || adding}
+            className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-[var(--obsidian)] disabled:opacity-50"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))" }}
+          >
+            {adding ? "Adding…" : `Add ${includedCount}`}
+          </button>
+        )}
+        <button onClick={onDiscard} className="text-xs text-[var(--faint)] hover:text-[var(--text)] px-2">
+          {rows.length === 0 ? "Dismiss" : "Discard"}
+        </button>
+      </div>
     </div>
   );
 }

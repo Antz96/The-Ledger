@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { fmt, currencySymbol, monthLabel, monthKey, TYPE_META } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
 import StatementUpload from "@/components/ui/StatementUpload";
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export default function LedgerTab({ transactions, activeMonth, setActiveMonth, onAdd, onDelete }) {
   const { monthTx, shiftMonth } = useMonthNav(transactions, activeMonth, setActiveMonth);
@@ -16,6 +18,43 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
     note: "",
   });
   const [formError, setFormError] = useState("");
+  const [pending, setPending] = useState(null);
+  const [adding, setAdding] = useState(false);
+
+  function handleExtracted(result) {
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = (result.items || []).map((item, i) => {
+      const type = TYPE_META[item.type] ? item.type : "expense";
+      const category = TYPE_META[type].cats.includes(item.category) ? item.category : TYPE_META[type].cats[0];
+      return {
+        _key: `${Date.now()}-${i}`,
+        include: true,
+        date: DATE_RE.test(item.date) ? item.date : today,
+        type,
+        category,
+        amount: Math.abs(Number(item.amount)) || 0,
+        note: item.note || "",
+      };
+    });
+    setPending(rows);
+  }
+
+  function updatePendingRow(key, patch) {
+    setPending((rows) => rows.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  }
+
+  function removePendingRow(key) {
+    setPending((rows) => rows.filter((r) => r._key !== key));
+  }
+
+  async function confirmImport() {
+    setAdding(true);
+    for (const row of pending.filter((r) => r.include)) {
+      await onAdd({ date: row.date, type: row.type, category: row.category, amount: Number(row.amount) || 0, note: row.note.trim() });
+    }
+    setAdding(false);
+    setPending(null);
+  }
 
   function handleAdd(e) {
     e.preventDefault();
@@ -105,7 +144,23 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
       </div>
 
       <div className="ledger-card overflow-hidden mb-6">
-        <StatementUpload label="Upload a bank or card statement to add entries automatically" className="px-4 sm:px-5 py-3" />
+        {pending ? (
+          <TransactionImportReview
+            rows={pending}
+            onUpdateRow={updatePendingRow}
+            onRemoveRow={removePendingRow}
+            onConfirm={confirmImport}
+            onDiscard={() => setPending(null)}
+            adding={adding}
+          />
+        ) : (
+          <StatementUpload
+            kind="transactions"
+            label="Upload a bank or card statement to add entries automatically"
+            className="px-4 sm:px-5 py-3"
+            onResult={handleExtracted}
+          />
+        )}
       </div>
 
       <div className="ledger-card overflow-hidden">
@@ -148,5 +203,99 @@ export default function LedgerTab({ transactions, activeMonth, setActiveMonth, o
         )}
       </div>
     </>
+  );
+}
+
+function TransactionImportReview({ rows, onUpdateRow, onRemoveRow, onConfirm, onDiscard, adding }) {
+  const includedCount = rows.filter((r) => r.include).length;
+
+  return (
+    <div className="px-4 sm:px-5 py-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-[var(--muted)]">
+          {rows.length === 0
+            ? "Nothing found in that statement."
+            : `Found ${rows.length} ${rows.length === 1 ? "transaction" : "transactions"} — review before adding.`}
+        </p>
+        <button onClick={onDiscard} aria-label="Discard extracted transactions" className="text-[var(--faint)] hover:text-[var(--text)]">
+          <X size={14} />
+        </button>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="space-y-2 mb-3 max-h-[360px] overflow-y-auto">
+          {rows.map((row) => (
+            <div key={row._key} className="grid grid-cols-2 sm:grid-cols-[auto_1fr_1fr_1fr_1.5fr_1fr_auto] gap-2 items-center">
+              <input
+                type="checkbox"
+                checked={row.include}
+                onChange={(e) => onUpdateRow(row._key, { include: e.target.checked })}
+                aria-label={`Include entry on ${row.date}`}
+                className="w-3.5 h-3.5"
+              />
+              <input
+                type="date"
+                value={row.date}
+                onChange={(e) => onUpdateRow(row._key, { date: e.target.value })}
+                aria-label="Date"
+                className="w-full text-xs mono border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              />
+              <select
+                value={row.type}
+                onChange={(e) => {
+                  const type = e.target.value;
+                  onUpdateRow(row._key, { type, category: TYPE_META[type].cats[0] });
+                }}
+                aria-label="Type"
+                className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              >
+                {Object.entries(TYPE_META).map(([k, v]) => <option key={k} value={k} style={{ color: "var(--obsidian-2)" }}>{v.label}</option>)}
+              </select>
+              <select
+                value={row.category}
+                onChange={(e) => onUpdateRow(row._key, { category: e.target.value })}
+                aria-label="Category"
+                className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              >
+                {TYPE_META[row.type].cats.map((c) => <option key={c} value={c} style={{ color: "var(--obsidian-2)" }}>{c}</option>)}
+              </select>
+              <input
+                value={row.note}
+                onChange={(e) => onUpdateRow(row._key, { note: e.target.value })}
+                placeholder="Note"
+                aria-label="Note"
+                className="w-full text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              />
+              <input
+                type="number" min="0" step="0.01"
+                value={row.amount}
+                onChange={(e) => onUpdateRow(row._key, { amount: e.target.value })}
+                aria-label="Amount"
+                className="w-full text-xs mono text-right border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              />
+              <button onClick={() => onRemoveRow(row._key)} aria-label="Remove this entry" className="text-[var(--faint)] hover:text-[var(--text)]">
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        {rows.length > 0 && (
+          <button
+            onClick={onConfirm}
+            disabled={includedCount === 0 || adding}
+            className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-[var(--obsidian)] disabled:opacity-50"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))" }}
+          >
+            {adding ? "Adding…" : `Add ${includedCount}`}
+          </button>
+        )}
+        <button onClick={onDiscard} className="text-xs text-[var(--faint)] hover:text-[var(--text)] px-2">
+          {rows.length === 0 ? "Dismiss" : "Discard"}
+        </button>
+      </div>
+    </div>
   );
 }

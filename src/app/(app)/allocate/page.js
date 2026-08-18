@@ -12,6 +12,7 @@ export default function AllocatePage() {
     handleAddOpportunity,
     handleUpdateOpportunity,
     handleDeleteOpportunity,
+    transactions,
   } = useLedgerData();
 
   return (
@@ -23,6 +24,7 @@ export default function AllocatePage() {
       onAddOpportunity={handleAddOpportunity}
       onUpdateOpportunity={handleUpdateOpportunity}
       onDeleteOpportunity={handleDeleteOpportunity}
+      transactions={transactions}
     />
   );
 }

@@ -53,6 +53,17 @@ To set it up:
    contract — enough to test this end to end. Going further (other people's accounts, sustained use)
    requires a signed agreement and KYB check with them directly.
 
+## Optional: PDF statement & payslip import
+
+Assets, Liabilities, Ledger transactions, and Allocate all offer an "Upload a PDF" option
+alongside manual entry. It reads a statement or payslip and extracts structured data for you to
+review before anything is added — it never advises on how to allocate money, only reports what's
+in the document.
+
+To enable it, get an API key from [console.anthropic.com](https://console.anthropic.com) (API
+Keys) and set `ANTHROPIC_API_KEY`. Without it, the upload button still appears but returns a clear
+"not configured yet" error instead of silently failing.
+
 ## Deploying to Vercel
 
 1. **Push this repo to GitHub.**
