@@ -21,7 +21,7 @@ const SECTIONS = [
 
 const N = SECTIONS.length;
 const STEP = 360 / N;
-const RADIUS = 118;
+const RADIUS = 170;
 
 function normalize(a) {
   a = a % 360;
