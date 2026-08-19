@@ -1,10 +1,41 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { requireUser } from "@/lib/supabaseServer";
 import { buildAssistantTools } from "@/lib/assistantTools";
+import { classifyUserMessage, classifyToolsUsed } from "@/lib/aiCompliance";
 
 const MODEL = "claude-sonnet-5";
 const MAX_HISTORY = 20;
 const MAX_MESSAGE_CHARS = 4000;
+
+const REGULATED_RISK_REPLY =
+  "I can show you your own numbers, but I can't tell you what to buy, sell, or which financial product to " +
+  "choose — that crosses into regulated financial advice, which I'm not licensed to give. For a decision like " +
+  "that, it's worth speaking to a licensed financial advisor or the relevant regulated professional.";
+
+const EXECUTION_REPLY =
+  "I can't move money, place trades, or make payments — I don't have a connection set up for that. I can show " +
+  "you what you've got and help you plan, but any transfer or transaction needs to happen through your bank or " +
+  "provider directly.";
+
+// Best-effort — a failed audit write shouldn't break the reply the user is
+// waiting on, but it's logged loudly since compliance logging existing at
+// all is a V1 acceptance criterion, not a nice-to-have.
+async function logAiInteraction(supabase, userId, entry) {
+  try {
+    const { error } = await supabase.from("ai_interactions").insert({
+      user_id: userId,
+      user_message: entry.userMessage,
+      classification: entry.classification,
+      tools_used: entry.toolsUsed,
+      reply: entry.reply,
+      blocked: entry.blocked,
+      model: MODEL,
+    });
+    if (error) throw error;
+  } catch (err) {
+    console.error("Couldn't log AI interaction:", err.message || err);
+  }
+}
 
 function buildSystemPrompt() {
   const today = new Date().toISOString().slice(0, 10);
@@ -70,10 +101,28 @@ export async function POST(request) {
     role: m.role === "assistant" ? "assistant" : "user",
     content: String(m.content || "").slice(0, MAX_MESSAGE_CHARS),
   }));
+  const lastUserMessage = trimmedMessages[trimmedMessages.length - 1].content;
+
+  // Compliance gate (Wealth OS blueprint §4.1.E): REGULATED_RISK and
+  // EXECUTION have no approved route or partner wired up, so they're
+  // declined here, before the model is ever called — not left to the
+  // system prompt to talk the model out of answering.
+  const preClassification = classifyUserMessage(lastUserMessage);
+  if (preClassification === "REGULATED_RISK" || preClassification === "EXECUTION") {
+    const reply = preClassification === "EXECUTION" ? EXECUTION_REPLY : REGULATED_RISK_REPLY;
+    await logAiInteraction(supabase, user.id, {
+      userMessage: lastUserMessage,
+      classification: preClassification,
+      toolsUsed: [],
+      reply,
+      blocked: true,
+    });
+    return Response.json({ reply, redirectTo: null });
+  }
 
   try {
     const anthropic = getClient();
-    const ctx = { redirectTo: null };
+    const ctx = { redirectTo: null, toolsUsed: [] };
     const tools = buildAssistantTools(supabase, user.id, ctx);
 
     const finalMessage = await anthropic.beta.messages.toolRunner({
@@ -85,10 +134,17 @@ export async function POST(request) {
     });
 
     const textBlock = finalMessage.content.find((b) => b.type === "text");
-    return Response.json({
-      reply: textBlock?.text || "I couldn't come up with an answer for that.",
-      redirectTo: ctx.redirectTo,
+    const reply = textBlock?.text || "I couldn't come up with an answer for that.";
+
+    await logAiInteraction(supabase, user.id, {
+      userMessage: lastUserMessage,
+      classification: classifyToolsUsed(ctx.toolsUsed),
+      toolsUsed: ctx.toolsUsed,
+      reply,
+      blocked: false,
     });
+
+    return Response.json({ reply, redirectTo: ctx.redirectTo });
   } catch (err) {
     return Response.json({ error: err.message || "Something went wrong." }, { status: 502 });
   }

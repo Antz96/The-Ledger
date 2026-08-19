@@ -167,5 +167,16 @@ export function buildAssistantTools(supabase, userId, ctx) {
     },
   });
 
-  return [getNetWorth, getTransactions, getGoals, getAllocation, createSavingsGoal, goToPage];
+  // Recorded so the route handler can classify the turn afterward (§4.1.E) and
+  // write it to the audit log (§4.1.G) — ctx is the same object the route
+  // already reads redirectTo off of.
+  ctx.toolsUsed = ctx.toolsUsed || [];
+  const allTools = [getNetWorth, getTransactions, getGoals, getAllocation, createSavingsGoal, goToPage];
+  return allTools.map((tool) => ({
+    ...tool,
+    run: async (input) => {
+      ctx.toolsUsed.push(tool.name);
+      return tool.run(input);
+    },
+  }));
 }
