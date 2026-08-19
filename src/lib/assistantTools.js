@@ -2,43 +2,20 @@
 // via their own RLS-scoped Supabase client — Claude never sees another user's data.
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { SECTIONS } from "@/lib/navSections";
+import { netWorth as calcNetWorth, projectGoal, sumBy } from "@/lib/financialCalculations";
 
-function monthsBetween(from, to) {
-  const a = new Date(from);
-  const b = new Date(to);
-  return Math.max(0, (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()));
-}
-
-function addMonths(date, months) {
-  const d = new Date(date);
-  d.setMonth(d.getMonth() + months);
-  return d;
-}
-
-// Mirrors GoalsTab.js's projectGoal() exactly, so the Assistant's answer about
-// a goal always matches what the Goals tab itself shows.
-function projectGoal(goal) {
-  const monthsElapsed = monthsBetween(goal.created_at, new Date());
-  const projectedSaved = Number(goal.starting_amount) + Number(goal.monthly_contribution) * monthsElapsed;
-  const target = Number(goal.target_amount);
-  const progressPct = target > 0 ? Math.min(100, (projectedSaved / target) * 100) : 0;
-  const remaining = Math.max(0, target - projectedSaved);
-  const monthlyContribution = Number(goal.monthly_contribution);
-
-  let projectedDate = null;
-  if (remaining === 0) {
-    projectedDate = "reached";
-  } else if (monthlyContribution > 0) {
-    const monthsToGo = Math.ceil(remaining / monthlyContribution);
-    projectedDate = addMonths(new Date(), monthsToGo).toISOString().slice(0, 10);
-  }
-
-  let onTrack = null;
-  if (goal.target_date && projectedDate && projectedDate !== "reached") {
-    onTrack = projectedDate <= goal.target_date;
-  }
-
-  return { projectedSaved, progressPct: Math.round(progressPct), remaining, projectedDate, onTrack };
+// Adapts projectGoal()'s real Date/number return shape to the JSON-safe,
+// pre-rounded shape this tool's result needs — the math itself is the same
+// function GoalsTab.js calls, so the two can never disagree.
+function serializeGoalProjection(goal) {
+  const projection = projectGoal(goal);
+  return {
+    ...projection,
+    progressPct: Math.round(projection.progressPct),
+    projectedDate: projection.projectedDate instanceof Date
+      ? projection.projectedDate.toISOString().slice(0, 10)
+      : projection.projectedDate,
+  };
 }
 
 // `ctx` is a plain object the route handler reads after the tool loop finishes —
@@ -56,15 +33,8 @@ export function buildAssistantTools(supabase, userId, ctx) {
         supabase.from("assets").select("name, category, purpose, value").eq("user_id", userId),
         supabase.from("liabilities").select("name, category, balance").eq("user_id", userId),
       ]);
-      const totalAssets = (assets || []).reduce((s, a) => s + (Number(a.value) || 0), 0);
-      const totalLiabilities = (liabilities || []).reduce((s, l) => s + (Number(l.balance) || 0), 0);
-      return JSON.stringify({
-        assets: assets || [],
-        liabilities: liabilities || [],
-        totalAssets,
-        totalLiabilities,
-        netWorth: totalAssets - totalLiabilities,
-      });
+      const totals = calcNetWorth(assets || [], liabilities || []);
+      return JSON.stringify({ assets: assets || [], liabilities: liabilities || [], ...totals });
     },
   });
 
@@ -93,7 +63,7 @@ export function buildAssistantTools(supabase, userId, ctx) {
       if (input.month) query = query.gte("date", `${input.month}-01`).lte("date", `${input.month}-31`);
       const { data } = await query;
       const rows = data || [];
-      const total = rows.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const total = sumBy(rows, "amount");
       return JSON.stringify({ transactions: rows.slice(0, 100), matchingCount: rows.length, total });
     },
   });
@@ -111,7 +81,7 @@ export function buildAssistantTools(supabase, userId, ctx) {
         .eq("user_id", userId)
         .order("created_at", { ascending: true });
       const result = (data || []).map((g) => {
-        const projection = projectGoal(g);
+        const projection = serializeGoalProjection(g);
         return {
           name: g.name,
           target_amount: Number(g.target_amount),

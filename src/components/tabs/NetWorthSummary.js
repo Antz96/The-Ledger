@@ -5,26 +5,15 @@ import Link from "next/link";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { PiggyBank, TrendingDown, Wallet, ArrowRight } from "lucide-react";
 import { fmt, PIE_COLORS } from "@/lib/ledgerConstants";
+import { netWorth as calcNetWorth, groupByCategory } from "@/lib/financialCalculations";
 import SummaryCard from "@/components/ui/SummaryCard";
 import NetWorthRing from "@/components/tabs/NetWorthRing";
 
-function byCategory(items, valueField) {
-  const map = {};
-  items.forEach((item) => {
-    map[item.category] = (map[item.category] || 0) + (Number(item[valueField]) || 0);
-  });
-  return Object.entries(map)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-}
-
 export default function NetWorthSummary({ assets, liabilities, goalPct }) {
-  const totalAssets = useMemo(() => assets.reduce((s, a) => s + (Number(a.value) || 0), 0), [assets]);
-  const totalLiabilities = useMemo(() => liabilities.reduce((s, l) => s + (Number(l.balance) || 0), 0), [liabilities]);
-  const netWorth = totalAssets - totalLiabilities;
+  const { totalAssets, totalLiabilities, netWorth } = useMemo(() => calcNetWorth(assets, liabilities), [assets, liabilities]);
 
-  const assetsByCategory = useMemo(() => byCategory(assets, "value"), [assets]);
-  const liabilitiesByCategory = useMemo(() => byCategory(liabilities, "balance"), [liabilities]);
+  const assetsByCategory = useMemo(() => groupByCategory(assets, "value"), [assets]);
+  const liabilitiesByCategory = useMemo(() => groupByCategory(liabilities, "balance"), [liabilities]);
 
   if (assets.length === 0 && liabilities.length === 0) {
     return (

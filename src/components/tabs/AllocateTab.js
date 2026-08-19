@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
-import { fmt, currencySymbol, monthKey, todayKey } from "@/lib/ledgerConstants";
+import { fmt, currencySymbol, todayKey } from "@/lib/ledgerConstants";
 import { EXPLORER_CATEGORIES, RISK_FILTERS } from "@/lib/explorerCategories";
+import { monthlyTotals, allocationSplit } from "@/lib/financialCalculations";
 import StatementUpload from "@/components/ui/StatementUpload";
 
 const RISK_COLOR = { Low: "var(--ledger-green-soft)", Medium: "var(--gold)", High: "var(--rust)" };
@@ -29,17 +30,10 @@ export default function AllocateTab({ alloc, onUpdateAlloc, opportunities, isAdm
   const [riskFilter, setRiskFilter] = useState("All");
   const [payslip, setPayslip] = useState(null);
 
-  const thisMonthExpenses = useMemo(
-    () => transactions.filter((t) => t.type === "expense" && monthKey(t.date) === todayKey()).reduce((s, t) => s + (Number(t.amount) || 0), 0),
-    [transactions]
-  );
+  const thisMonthExpenses = useMemo(() => monthlyTotals(transactions, todayKey()).expense, [transactions]);
 
   const allocSum = alloc.low + alloc.medium + alloc.high;
-  const allocDollars = {
-    low: (alloc.monthly * alloc.low) / 100,
-    medium: (alloc.monthly * alloc.medium) / 100,
-    high: (alloc.monthly * alloc.high) / 100,
-  };
+  const allocDollars = allocationSplit(alloc);
 
   const visible = useMemo(
     () => EXPLORER_CATEGORIES.filter((c) => riskFilter === "All" || c.risk.includes(riskFilter)),

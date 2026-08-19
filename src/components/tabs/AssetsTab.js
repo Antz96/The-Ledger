@@ -11,6 +11,7 @@ import {
 } from "@/lib/ledgerConstants";
 import SummaryCard from "@/components/ui/SummaryCard";
 import StatementUpload from "@/components/ui/StatementUpload";
+import { netWorth as calcNetWorth } from "@/lib/financialCalculations";
 
 export default function AssetsTab({
   assets,
@@ -22,9 +23,7 @@ export default function AssetsTab({
   onUpdateLiability,
   onDeleteLiability,
 }) {
-  const totalAssets = useMemo(() => assets.reduce((s, a) => s + (Number(a.value) || 0), 0), [assets]);
-  const totalLiabilities = useMemo(() => liabilities.reduce((s, l) => s + (Number(l.balance) || 0), 0), [liabilities]);
-  const netWorth = totalAssets - totalLiabilities;
+  const { totalAssets, totalLiabilities, netWorth } = useMemo(() => calcNetWorth(assets, liabilities), [assets, liabilities]);
 
   return (
     <div className="space-y-6">

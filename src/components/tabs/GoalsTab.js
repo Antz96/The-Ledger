@@ -3,42 +3,7 @@
 import { useState } from "react";
 import { Target, Plus, Pencil, Trash2, X } from "lucide-react";
 import { fmt } from "@/lib/ledgerConstants";
-
-function monthsBetween(from, to) {
-  const a = new Date(from);
-  const b = new Date(to);
-  return Math.max(0, (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()));
-}
-
-function addMonths(date, months) {
-  const d = new Date(date);
-  d.setMonth(d.getMonth() + months);
-  return d;
-}
-
-function projectGoal(goal) {
-  const monthsElapsed = monthsBetween(goal.created_at, new Date());
-  const projectedSaved = Number(goal.starting_amount) + Number(goal.monthly_contribution) * monthsElapsed;
-  const target = Number(goal.target_amount);
-  const progressPct = target > 0 ? Math.min(100, (projectedSaved / target) * 100) : 0;
-  const remaining = Math.max(0, target - projectedSaved);
-  const monthlyContribution = Number(goal.monthly_contribution);
-
-  let projectedDate = null;
-  if (remaining === 0) {
-    projectedDate = "reached";
-  } else if (monthlyContribution > 0) {
-    const monthsToGo = Math.ceil(remaining / monthlyContribution);
-    projectedDate = addMonths(new Date(), monthsToGo);
-  }
-
-  let onTrack = null;
-  if (goal.target_date && projectedDate && projectedDate !== "reached") {
-    onTrack = projectedDate <= new Date(goal.target_date);
-  }
-
-  return { projectedSaved, progressPct, remaining, projectedDate, onTrack };
-}
+import { projectGoal } from "@/lib/financialCalculations";
 
 export default function GoalsTab({ goals, onAdd, onUpdate, onDelete }) {
   return (

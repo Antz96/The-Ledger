@@ -7,41 +7,24 @@ import {
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Wallet } from "lucide-react";
 import { fmt, currencySymbol, monthLabel, PIE_COLORS } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
+import { monthlyTotals, expensesByCategory, monthlyTrend } from "@/lib/financialCalculations";
 import SummaryCard from "@/components/ui/SummaryCard";
 
 export default function DashboardTab({ transactions, goal, onGoalSave, activeMonth, setActiveMonth }) {
-  const { months, monthIndex, monthTx, shiftMonth } = useMonthNav(transactions, activeMonth, setActiveMonth);
+  const { months, monthIndex, shiftMonth } = useMonthNav(transactions, activeMonth, setActiveMonth);
   const [goalDraft, setGoalDraft] = useState(String(goal));
 
   useEffect(() => setGoalDraft(String(goal)), [goal]);
 
-  const totals = useMemo(() => {
-    const t = { income: 0, expense: 0, savings: 0 };
-    monthTx.forEach((tx) => { t[tx.type] += Number(tx.amount) || 0; });
-    return t;
-  }, [monthTx]);
-  const net = totals.income - totals.expense - totals.savings;
+  const totals = useMemo(() => monthlyTotals(transactions, activeMonth), [transactions, activeMonth]);
+  const net = totals.net;
 
-  const totalSaved = useMemo(
-    () => transactions.filter((t) => t.type === "savings").reduce((s, t) => s + (Number(t.amount) || 0), 0),
-    [transactions]
-  );
+  const totalSaved = useMemo(() => monthlyTotals(transactions).savings, [transactions]);
   const goalPct = goal > 0 ? Math.min(100, (totalSaved / goal) * 100) : 0;
 
-  const expenseByCategory = useMemo(() => {
-    const map = {};
-    monthTx.filter((t) => t.type === "expense").forEach((t) => { map[t.category] = (map[t.category] || 0) + (Number(t.amount) || 0); });
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [monthTx]);
+  const expenseByCategory = useMemo(() => expensesByCategory(transactions, activeMonth), [transactions, activeMonth]);
 
-  const trend = useMemo(() => {
-    const last6 = months.slice(-6);
-    return last6.map((mk) => {
-      const t = { income: 0, expense: 0, savings: 0 };
-      transactions.filter((tx) => tx.date.slice(0, 7) === mk).forEach((tx) => { t[tx.type] += Number(tx.amount) || 0; });
-      return { month: new Date(mk + "-01").toLocaleDateString("en-US", { month: "short" }), Income: t.income, Expense: t.expense, Saved: t.savings };
-    });
-  }, [months, transactions]);
+  const trend = useMemo(() => monthlyTrend(transactions, months.slice(-6)), [months, transactions]);
 
   function handleGoalSave() {
     const g = parseFloat(goalDraft);
