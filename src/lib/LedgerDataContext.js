@@ -154,6 +154,11 @@ export function LedgerDataProvider({ session, children }) {
   }, [user.id, user.email, user.user_metadata, recordNetWorthSnapshot]);
 
   useEffect(() => {
+    // One-time fetch-on-mount for the signed-in user's data. loadAll sets many
+    // independent pieces of state (profile, transactions, assets, ...) that
+    // can't be derived during render or split into a subscription, so this is
+    // the accepted exception to the rule rather than a pattern to restructure.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAll();
   }, [loadAll]);
 
