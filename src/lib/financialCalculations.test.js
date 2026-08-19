@@ -3,6 +3,7 @@ import {
   sumBy,
   groupByCategory,
   netWorth,
+  netWorthChange,
   monthlyTotals,
   expensesByCategory,
   monthlyTrend,
@@ -60,6 +61,43 @@ describe("netWorth", () => {
   });
   test("handles no assets/liabilities at all", () => {
     expect(netWorth([], [])).toEqual({ totalAssets: 0, totalLiabilities: 0, netWorth: 0 });
+  });
+});
+
+describe("netWorthChange", () => {
+  test("compares latest to the closest snapshot ~30 days earlier", () => {
+    const snapshots = [
+      { snapshot_date: "2026-07-01", net_worth: 50000 },
+      { snapshot_date: "2026-07-19", net_worth: 53000 }, // closest to the 30-day cutoff (2026-07-20)
+      { snapshot_date: "2026-08-10", net_worth: 55000 },
+      { snapshot_date: "2026-08-19", net_worth: 57200 },
+    ];
+    expect(netWorthChange(snapshots, 30)).toEqual({
+      current: 57200,
+      previous: 53000,
+      change: 4200,
+      days: 30,
+    });
+  });
+
+  test("no history at all returns null", () => {
+    expect(netWorthChange([], 30)).toBeNull();
+  });
+
+  test("only recent history (nothing old enough to compare) returns null", () => {
+    const snapshots = [
+      { snapshot_date: "2026-08-15", net_worth: 57000 },
+      { snapshot_date: "2026-08-19", net_worth: 57200 },
+    ];
+    expect(netWorthChange(snapshots, 30)).toBeNull();
+  });
+
+  test("a snapshot exactly on the cutoff date counts as the baseline", () => {
+    const snapshots = [
+      { snapshot_date: "2026-07-20", net_worth: 50000 }, // exactly 30 days before 2026-08-19
+      { snapshot_date: "2026-08-19", net_worth: 57200 },
+    ];
+    expect(netWorthChange(snapshots, 30)).toEqual({ current: 57200, previous: 50000, change: 7200, days: 30 });
   });
 });
 

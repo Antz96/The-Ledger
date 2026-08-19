@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { PiggyBank, TrendingDown, Wallet, Landmark, Clock, ArrowRight } from "lucide-react";
 import { fmt, PIE_COLORS, lastNMonthKeys } from "@/lib/ledgerConstants";
 import {
@@ -15,7 +15,7 @@ import {
 import SummaryCard from "@/components/ui/SummaryCard";
 import NetWorthRing from "@/components/tabs/NetWorthRing";
 
-export default function NetWorthSummary({ assets, liabilities, transactions = [], goalPct }) {
+export default function NetWorthSummary({ assets, liabilities, transactions = [], netWorthSnapshots = [], goalPct }) {
   const { totalAssets, totalLiabilities, netWorth } = useMemo(() => calcNetWorth(assets, liabilities), [assets, liabilities]);
 
   const assetsByCategory = useMemo(() => groupByCategory(assets, "value"), [assets]);
@@ -26,6 +26,11 @@ export default function NetWorthSummary({ assets, liabilities, transactions = []
     const avgEssential = averageEssentialExpenditure(transactions, lastNMonthKeys(6));
     return financialRunway(cashPosition, avgEssential);
   }, [transactions, cashPosition]);
+
+  const historyData = useMemo(
+    () => netWorthSnapshots.map((s) => ({ date: s.snapshot_date, "Net worth": Number(s.net_worth) })),
+    [netWorthSnapshots]
+  );
 
   if (assets.length === 0 && liabilities.length === 0) {
     return (
@@ -73,6 +78,41 @@ export default function NetWorthSummary({ assets, liabilities, transactions = []
           color="var(--cyan)"
           caption="cash ÷ avg. essential spend, last 6 mo"
         />
+      </div>
+
+      <div className="ledger-card p-4 sm:p-5 mb-4">
+        <p className="serif text-sm tracking-wide text-[var(--muted)] mb-3">Net worth over time</p>
+        {historyData.length < 2 ? (
+          <p className="text-xs text-[var(--faint)] mono py-10 text-center">
+            Check back after a few more days — history builds up as you go.
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={historyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--muted)" }} axisLine={{ stroke: "var(--line)" }} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--muted)" }}
+                axisLine={false}
+                tickLine={false}
+                width={52}
+                tickFormatter={(v) => fmt(v)}
+              />
+              <Tooltip
+                formatter={(v) => fmt(v)}
+                contentStyle={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  borderRadius: 8,
+                  background: "var(--obsidian-2)",
+                  border: "1px solid var(--line)",
+                  color: "var(--text)",
+                }}
+              />
+              <Line type="monotone" dataKey="Net worth" stroke="var(--cyan)" strokeWidth={2} dot={{ r: 3, fill: "var(--cyan)" }} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -27,6 +27,27 @@ export function netWorth(assets, liabilities) {
   return { totalAssets, totalLiabilities, netWorth: totalAssets - totalLiabilities };
 }
 
+// Compares the latest net worth snapshot to the closest one on or before
+// `daysAgo` days earlier. Returns null when there isn't a snapshot old enough
+// to compare against yet — a made-up "0 change" would be misleading for a
+// brand-new account with only a few days of history.
+export function netWorthChange(snapshots, daysAgo = 30) {
+  if (!snapshots || snapshots.length === 0) return null;
+  const sorted = [...snapshots].sort((a, b) => (a.snapshot_date < b.snapshot_date ? -1 : 1));
+  const latest = sorted[sorted.length - 1];
+  const cutoff = new Date(latest.snapshot_date);
+  cutoff.setDate(cutoff.getDate() - daysAgo);
+  const cutoffKey = cutoff.toISOString().slice(0, 10);
+  const baseline = [...sorted].reverse().find((s) => s.snapshot_date <= cutoffKey);
+  if (!baseline) return null;
+  return {
+    current: Number(latest.net_worth),
+    previous: Number(baseline.net_worth),
+    change: Number(latest.net_worth) - Number(baseline.net_worth),
+    days: daysAgo,
+  };
+}
+
 // Income/expense/savings totals, and what's left over (income − expense − savings).
 // Pass a monthKey ("YYYY-MM") to scope to one month, or omit it for all-time.
 export function monthlyTotals(transactions, monthKeyValue) {

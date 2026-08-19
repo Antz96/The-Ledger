@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { monthKey, todayKey, DEFAULT_CURRENCY, setActiveCurrency } from "@/lib/ledgerConstants";
+import { netWorth as calcNetWorth } from "@/lib/financialCalculations";
 
 const LedgerDataContext = createContext(null);
 
@@ -24,12 +25,47 @@ export function LedgerDataProvider({ session, children }) {
   const [rates, setRates] = useState([]);
   const [assets, setAssets] = useState([]);
   const [liabilities, setLiabilities] = useState([]);
+  const [netWorthSnapshots, setNetWorthSnapshots] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [financialGoals, setFinancialGoals] = useState([]);
   const [creditActionProgress, setCreditActionProgress] = useState([]);
   const [creditProfile, setCreditProfile] = useState(null);
   const [creditGoalSelections, setCreditGoalSelections] = useState([]);
   const [articles, setArticles] = useState([]);
+
+  // Upserts today's net worth snapshot (one row per user per day). Best-effort:
+  // failures are logged, not surfaced as a top-level error — this is background
+  // bookkeeping for the history chart, not something the user directly asked for.
+  const recordNetWorthSnapshot = useCallback(
+    async (nextAssets, nextLiabilities) => {
+      const totals = calcNetWorth(nextAssets, nextLiabilities);
+      const snapshotDate = new Date().toISOString().slice(0, 10);
+      try {
+        const { data, error: upsertError } = await supabase
+          .from("net_worth_snapshots")
+          .upsert(
+            {
+              user_id: user.id,
+              snapshot_date: snapshotDate,
+              total_assets: totals.totalAssets,
+              total_liabilities: totals.totalLiabilities,
+              net_worth: totals.netWorth,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,snapshot_date" }
+          )
+          .select()
+          .single();
+        if (upsertError) throw upsertError;
+        setNetWorthSnapshots((prev) => [...prev.filter((s) => s.snapshot_date !== data.snapshot_date), data].sort(
+          (a, b) => (a.snapshot_date < b.snapshot_date ? -1 : 1)
+        ));
+      } catch (err) {
+        console.error("Couldn't record net worth snapshot:", err.message || err);
+      }
+    },
+    [user.id]
+  );
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -66,6 +102,7 @@ export function LedgerDataProvider({ session, children }) {
         { data: creditProfileRow },
         { data: creditGoalRows },
         { data: articleRows },
+        { data: snapshotRows },
       ] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
         supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
@@ -79,6 +116,7 @@ export function LedgerDataProvider({ session, children }) {
         supabase.from("credit_profile").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("credit_goal_selections").select("*").eq("user_id", user.id),
         supabase.from("articles").select("*").order("published_at", { ascending: false }),
+        supabase.from("net_worth_snapshots").select("*").eq("user_id", user.id).order("snapshot_date", { ascending: true }),
       ]);
 
       setTransactions(txRows || []);
@@ -91,6 +129,7 @@ export function LedgerDataProvider({ session, children }) {
       setCreditProfile(creditProfileRow || null);
       setCreditGoalSelections(creditGoalRows || []);
       setArticles(articleRows || []);
+      setNetWorthSnapshots(snapshotRows || []);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -100,12 +139,15 @@ export function LedgerDataProvider({ session, children }) {
           high: allocRow.high_pct,
         });
       }
+      // Best-effort — ensures at least one data point per active day even if
+      // the user doesn't touch assets/liabilities during this session.
+      recordNetWorthSnapshot(assetRows || [], liabilityRows || []);
     } catch (err) {
       setError(err.message || "Couldn't load your data.");
     } finally {
       setLoading(false);
     }
-  }, [user.id, user.email, user.user_metadata]);
+  }, [user.id, user.email, user.user_metadata, recordNetWorthSnapshot]);
 
   useEffect(() => {
     loadAll();
@@ -228,7 +270,9 @@ export function LedgerDataProvider({ session, children }) {
         .select()
         .single();
       if (insertError) throw insertError;
-      setAssets((prev) => [...prev, data]);
+      const nextAssets = [...assets, data];
+      setAssets(nextAssets);
+      recordNetWorthSnapshot(nextAssets, liabilities);
     } catch (err) {
       setError(err.message || "Couldn't add that asset.");
     } finally {
@@ -247,7 +291,9 @@ export function LedgerDataProvider({ session, children }) {
         .select()
         .single();
       if (updateError) throw updateError;
-      setAssets((prev) => prev.map((a) => (a.id === id ? data : a)));
+      const nextAssets = assets.map((a) => (a.id === id ? data : a));
+      setAssets(nextAssets);
+      recordNetWorthSnapshot(nextAssets, liabilities);
     } catch (err) {
       setError(err.message || "Couldn't update that asset.");
     } finally {
@@ -259,11 +305,14 @@ export function LedgerDataProvider({ session, children }) {
     setSaving(true);
     setError(null);
     const prev = assets;
-    setAssets((a) => a.filter((row) => row.id !== id));
+    const nextAssets = assets.filter((row) => row.id !== id);
+    setAssets(nextAssets);
     const { error: deleteError } = await supabase.from("assets").delete().eq("id", id);
     if (deleteError) {
       setError(deleteError.message);
       setAssets(prev);
+    } else {
+      recordNetWorthSnapshot(nextAssets, liabilities);
     }
     setSaving(false);
   }
@@ -278,7 +327,9 @@ export function LedgerDataProvider({ session, children }) {
         .select()
         .single();
       if (insertError) throw insertError;
-      setLiabilities((prev) => [...prev, data]);
+      const nextLiabilities = [...liabilities, data];
+      setLiabilities(nextLiabilities);
+      recordNetWorthSnapshot(assets, nextLiabilities);
     } catch (err) {
       setError(err.message || "Couldn't add that liability.");
     } finally {
@@ -297,7 +348,9 @@ export function LedgerDataProvider({ session, children }) {
         .select()
         .single();
       if (updateError) throw updateError;
-      setLiabilities((prev) => prev.map((l) => (l.id === id ? data : l)));
+      const nextLiabilities = liabilities.map((l) => (l.id === id ? data : l));
+      setLiabilities(nextLiabilities);
+      recordNetWorthSnapshot(assets, nextLiabilities);
     } catch (err) {
       setError(err.message || "Couldn't update that liability.");
     } finally {
@@ -309,11 +362,14 @@ export function LedgerDataProvider({ session, children }) {
     setSaving(true);
     setError(null);
     const prev = liabilities;
-    setLiabilities((l) => l.filter((row) => row.id !== id));
+    const nextLiabilities = liabilities.filter((row) => row.id !== id);
+    setLiabilities(nextLiabilities);
     const { error: deleteError } = await supabase.from("liabilities").delete().eq("id", id);
     if (deleteError) {
       setError(deleteError.message);
       setLiabilities(prev);
+    } else {
+      recordNetWorthSnapshot(assets, nextLiabilities);
     }
     setSaving(false);
   }
@@ -544,6 +600,7 @@ export function LedgerDataProvider({ session, children }) {
     rates,
     assets,
     liabilities,
+    netWorthSnapshots,
     opportunities,
     financialGoals,
     creditActionProgress,
