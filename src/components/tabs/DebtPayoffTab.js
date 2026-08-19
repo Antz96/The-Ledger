@@ -2,15 +2,45 @@
 
 import { useState } from "react";
 import { TrendingDown, Plus, Pencil, Trash2 } from "lucide-react";
-import { fmt } from "@/lib/ledgerConstants";
+import { fmt, LIABILITY_CATEGORIES } from "@/lib/ledgerConstants";
 import { payoffProjection, buildRepaymentPatch, formatPayoffDate } from "@/lib/debtPayoff";
-
-const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"];
+import StatementUpload from "@/components/ui/StatementUpload";
+import ImportReview from "@/components/ui/ImportReview";
 
 export default function DebtPayoffTab({ liabilities, onAdd, onUpdate, onDelete }) {
+  const [pending, setPending] = useState(null);
+  const [adding, setAdding] = useState(false);
   const totalDebt = liabilities.reduce((s, l) => s + (Number(l.balance) || 0), 0);
   const tracked = liabilities.filter((l) => Number(l.monthly_repayment) > 0);
   const totalRepaymentPerMonth = tracked.reduce((s, l) => s + Number(l.monthly_repayment), 0);
+
+  function handleExtracted(result) {
+    const rows = (result.items || []).map((item, i) => ({
+      _key: `${Date.now()}-${i}`,
+      include: true,
+      name: item.name || "",
+      category: LIABILITY_CATEGORIES.includes(item.category) ? item.category : LIABILITY_CATEGORIES[0],
+      balance: Number(item.balance) || 0,
+    }));
+    setPending(rows);
+  }
+
+  function updateRow(key, patch) {
+    setPending((rows) => rows.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  }
+
+  function removeRow(key) {
+    setPending((rows) => rows.filter((r) => r._key !== key));
+  }
+
+  async function confirmImport() {
+    setAdding(true);
+    for (const row of pending.filter((r) => r.include)) {
+      await onAdd({ name: row.name.trim() || "Untitled", category: row.category, balance: Number(row.balance) || 0 });
+    }
+    setAdding(false);
+    setPending(null);
+  }
 
   return (
     <div className="space-y-4">
@@ -19,8 +49,8 @@ export default function DebtPayoffTab({ liabilities, onAdd, onUpdate, onDelete }
           <TrendingDown size={15} style={{ color: "var(--rust)" }} /> Debt payoff
         </p>
         <p className="text-xs opacity-50 mb-4">
-          A simple projection based on what you're putting toward each debt each month — not a real amortization
-          schedule, since interest rates aren't tracked here.
+          A simple projection based on what you&apos;re putting toward each debt each month — not a real amortization
+          schedule, since interest rates aren&apos;t tracked here.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -43,6 +73,25 @@ export default function DebtPayoffTab({ liabilities, onAdd, onUpdate, onDelete }
           ))}
         </div>
       )}
+
+      <div className="ledger-card overflow-hidden">
+        {pending ? (
+          <ImportReview
+            rows={pending}
+            categories={LIABILITY_CATEGORIES}
+            valueField="balance"
+            valueLabel="BALANCE"
+            withPurpose={false}
+            onUpdateRow={updateRow}
+            onRemoveRow={removeRow}
+            onConfirm={confirmImport}
+            onDiscard={() => setPending(null)}
+            adding={adding}
+          />
+        ) : (
+          <StatementUpload kind="liabilities" label="Upload a statement to add debts automatically" onResult={handleExtracted} />
+        )}
+      </div>
 
       <AddDebtForm onAdd={onAdd} />
     </div>
