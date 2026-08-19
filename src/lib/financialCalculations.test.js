@@ -12,6 +12,8 @@ import {
   liquidCash,
   averageEssentialExpenditure,
   financialRunway,
+  savingsRatePct,
+  evaluateConstitutionRule,
   allocationSplit,
   projectGoal,
 } from "./financialCalculations";
@@ -244,6 +246,34 @@ describe("financialRunway", () => {
   test("no essential spend to divide by returns null, not Infinity", () => {
     expect(financialRunway(3000, 0)).toBeNull();
     expect(financialRunway(3000, null)).toBeNull();
+  });
+});
+
+describe("savingsRatePct", () => {
+  test("savings as a percentage of income", () => {
+    expect(savingsRatePct(2400, 384)).toBe(16);
+  });
+  test("no income logged returns null, not Infinity", () => {
+    expect(savingsRatePct(0, 200)).toBeNull();
+    expect(savingsRatePct(null, 200)).toBeNull();
+  });
+});
+
+describe("evaluateConstitutionRule", () => {
+  test("min direction: meeting or beating the target is met", () => {
+    expect(evaluateConstitutionRule(20, 15, "min")).toEqual({ actual: 20, target: 15, met: true });
+    expect(evaluateConstitutionRule(10, 15, "min")).toEqual({ actual: 10, target: 15, met: false });
+  });
+  test("max direction: staying at or under the target is met", () => {
+    expect(evaluateConstitutionRule(400, 600, "max")).toEqual({ actual: 400, target: 600, met: true });
+    expect(evaluateConstitutionRule(700, 600, "max")).toEqual({ actual: 700, target: 600, met: false });
+  });
+  test("no target set returns null rather than a false judgment", () => {
+    expect(evaluateConstitutionRule(20, null, "min")).toBeNull();
+    expect(evaluateConstitutionRule(20, undefined, "min")).toBeNull();
+  });
+  test("no actual to compare returns null too", () => {
+    expect(evaluateConstitutionRule(null, 20, "min")).toBeNull();
   });
 });
 

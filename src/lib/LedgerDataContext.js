@@ -28,6 +28,7 @@ export function LedgerDataProvider({ session, children }) {
   const [netWorthSnapshots, setNetWorthSnapshots] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [financialGoals, setFinancialGoals] = useState([]);
+  const [financialConstitution, setFinancialConstitution] = useState(null);
   const [creditActionProgress, setCreditActionProgress] = useState([]);
   const [creditProfile, setCreditProfile] = useState(null);
   const [creditGoalSelections, setCreditGoalSelections] = useState([]);
@@ -103,6 +104,7 @@ export function LedgerDataProvider({ session, children }) {
         { data: creditGoalRows },
         { data: articleRows },
         { data: snapshotRows },
+        { data: constitutionRow },
       ] = await Promise.all([
         supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false }),
         supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
@@ -117,6 +119,7 @@ export function LedgerDataProvider({ session, children }) {
         supabase.from("credit_goal_selections").select("*").eq("user_id", user.id),
         supabase.from("articles").select("*").order("published_at", { ascending: false }),
         supabase.from("net_worth_snapshots").select("*").eq("user_id", user.id).order("snapshot_date", { ascending: true }),
+        supabase.from("financial_constitution").select("*").eq("user_id", user.id).maybeSingle(),
       ]);
 
       setTransactions(txRows || []);
@@ -130,6 +133,7 @@ export function LedgerDataProvider({ session, children }) {
       setCreditGoalSelections(creditGoalRows || []);
       setArticles(articleRows || []);
       setNetWorthSnapshots(snapshotRows || []);
+      setFinancialConstitution(constitutionRow || null);
       if (goalRow) setGoal(Number(goalRow.target_amount));
       if (allocRow) {
         setAlloc({
@@ -470,6 +474,24 @@ export function LedgerDataProvider({ session, children }) {
     setSaving(false);
   }
 
+  async function handleSaveConstitution(patch) {
+    setSaving(true);
+    setError(null);
+    try {
+      const { data, error: upsertError } = await supabase
+        .from("financial_constitution")
+        .upsert({ user_id: user.id, ...patch, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+        .select()
+        .single();
+      if (upsertError) throw upsertError;
+      setFinancialConstitution(data);
+    } catch (err) {
+      setError(err.message || "Couldn't save your rules.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleToggleCreditAction(actionId) {
     setSaving(true);
     setError(null);
@@ -603,6 +625,7 @@ export function LedgerDataProvider({ session, children }) {
     netWorthSnapshots,
     opportunities,
     financialGoals,
+    financialConstitution,
     creditActionProgress,
     creditProfile,
     creditGoalSelections,
@@ -626,6 +649,7 @@ export function LedgerDataProvider({ session, children }) {
     handleAddFinancialGoal,
     handleUpdateFinancialGoal,
     handleDeleteFinancialGoal,
+    handleSaveConstitution,
     handleToggleCreditAction,
     handleSaveCreditProfile,
     handleToggleCreditGoal,

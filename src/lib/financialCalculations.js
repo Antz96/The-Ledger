@@ -129,6 +129,25 @@ export function financialRunway(liquidCashAmount, averageEssentialSpend) {
   return liquidCashAmount / averageEssentialSpend;
 }
 
+// Savings as a percentage of income for the same period. Returns null rather
+// than Infinity/NaN when there's no income to divide by.
+export function savingsRatePct(income, savings) {
+  if (!income || income <= 0) return null;
+  return (savings / income) * 100;
+}
+
+// Checks an actual figure against a user-chosen Financial Constitution target
+// (§7.5) — never the other way round; Ledger measures the plan the user set,
+// it doesn't set or suggest one. direction "min" means the actual should meet
+// or exceed the target (savings rate, cash buffer); "max" means it should
+// stay at or under it (a discretionary spending cap). Returns null when
+// either side is unset, since there's nothing to evaluate yet.
+export function evaluateConstitutionRule(actual, target, direction = "min") {
+  if (actual === null || actual === undefined || target === null || target === undefined) return null;
+  const met = direction === "max" ? actual <= target : actual >= target;
+  return { actual, target, met };
+}
+
 // Dollar amount allocated to each risk tier, from a monthly total + percentage split.
 export function allocationSplit(alloc) {
   return {
