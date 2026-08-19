@@ -4,6 +4,8 @@
 // formula can be unit tested in isolation. Components and the Assistant's
 // tools both call into this file rather than each computing their own copy.
 
+import { EXPENSE_CLASSIFICATION } from "@/lib/ledgerConstants";
+
 export function sumBy(items, field) {
   return (items || []).reduce((s, item) => s + (Number(item[field]) || 0), 0);
 }
@@ -57,6 +59,53 @@ export function monthlyTrend(transactions, monthKeys) {
       Saved: t.savings,
     };
   });
+}
+
+// essential | discretionary for an expense category. Unclassified categories
+// default to discretionary — see EXPENSE_CLASSIFICATION for the reasoning.
+export function classifyExpenseCategory(category) {
+  return EXPENSE_CLASSIFICATION[category] || "discretionary";
+}
+
+// Income, essential spend, discretionary spend, wealth-building (money moved
+// to savings/goals), and what's left unallocated — the Wealth OS blueprint's
+// "Monthly Flow" (§7.2). Pass a monthKey to scope to one month, or omit it
+// for all-time.
+export function monthlyFlow(transactions, monthKeyValue) {
+  const flow = { income: 0, essential: 0, discretionary: 0, wealthBuilding: 0 };
+  (transactions || [])
+    .filter((tx) => !monthKeyValue || tx.date.slice(0, 7) === monthKeyValue)
+    .forEach((tx) => {
+      const amount = Number(tx.amount) || 0;
+      if (tx.type === "income") flow.income += amount;
+      else if (tx.type === "savings") flow.wealthBuilding += amount;
+      else if (tx.type === "expense") flow[classifyExpenseCategory(tx.category)] += amount;
+    });
+  const unallocated = flow.income - flow.essential - flow.discretionary - flow.wealthBuilding;
+  return { ...flow, unallocated };
+}
+
+// Sum of assets categorized as Cash — the liquid portion of net worth.
+export function liquidCash(assets) {
+  return sumBy((assets || []).filter((a) => a.category === "Cash"), "value");
+}
+
+// Average essential spend across the given months. A month with no logged
+// transactions counts as 0 (same convention monthlyTrend uses) — pass a
+// window that reflects real history, e.g. lastNMonthKeys(), rather than
+// assuming data exists for every month in it.
+export function averageEssentialExpenditure(transactions, monthKeys) {
+  if (!monthKeys || monthKeys.length === 0) return 0;
+  const total = monthKeys.reduce((s, mk) => s + monthlyFlow(transactions, mk).essential, 0);
+  return total / monthKeys.length;
+}
+
+// Months of essential spending liquidCash would cover, at the given average
+// rate. Returns null when there's no essential spend to divide by — an
+// "infinite" runway isn't a meaningful number to show.
+export function financialRunway(liquidCashAmount, averageEssentialSpend) {
+  if (!averageEssentialSpend || averageEssentialSpend <= 0) return null;
+  return liquidCashAmount / averageEssentialSpend;
 }
 
 // Dollar amount allocated to each risk tier, from a monthly total + percentage split.

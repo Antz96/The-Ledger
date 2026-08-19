@@ -8,6 +8,23 @@ export const TYPE_META = {
   savings: { label: "Savings", color: "#D9B44A", cats: SAVINGS_CATS },
 };
 
+// Which expense categories are non-optional vs lifestyle spend, for the
+// essential/discretionary/wealth-building split (Wealth OS blueprint §7.3,
+// §13). A judgment call, not a fact — Transport and Health are treated as
+// essential (getting to work, medical needs), Entertainment and Shopping as
+// discretionary. "Other" defaults to discretionary since it's unclassified
+// spend and treating the unknown as essential would overstate real runway.
+export const EXPENSE_CLASSIFICATION = {
+  Housing: "essential",
+  "Food & Groceries": "essential",
+  Transport: "essential",
+  Utilities: "essential",
+  Health: "essential",
+  Entertainment: "discretionary",
+  Shopping: "discretionary",
+  Other: "discretionary",
+};
+
 export const ASSET_CATEGORIES = ["Cash", "Investments", "Pension", "Property", "Crypto", "Other"];
 export const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"];
 
@@ -54,4 +71,17 @@ export function fmt(n) {
 export function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+// The last n calendar months as "YYYY-MM" keys, oldest first, ending at endKey
+// (defaults to the current month). Independent of which months actually have
+// transactions — used for calendar-based averages like Financial Runway.
+export function lastNMonthKeys(n, endKey = todayKey()) {
+  const [y, m] = endKey.split("-").map(Number);
+  const keys = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(y, m - 1 - i, 1);
+    keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  return keys;
 }

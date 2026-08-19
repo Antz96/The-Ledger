@@ -6,6 +6,11 @@ import {
   monthlyTotals,
   expensesByCategory,
   monthlyTrend,
+  classifyExpenseCategory,
+  monthlyFlow,
+  liquidCash,
+  averageEssentialExpenditure,
+  financialRunway,
   allocationSplit,
   projectGoal,
 } from "./financialCalculations";
@@ -124,6 +129,83 @@ describe("monthlyTrend", () => {
       { month: "Jul", Income: 2000, Expense: 0, Saved: 0 },
       { month: "Aug", Income: 2400, Expense: 900, Saved: 0 },
     ]);
+  });
+});
+
+describe("classifyExpenseCategory", () => {
+  test("known categories map to essential or discretionary", () => {
+    expect(classifyExpenseCategory("Housing")).toBe("essential");
+    expect(classifyExpenseCategory("Entertainment")).toBe("discretionary");
+  });
+  test("unknown/uncategorized defaults to discretionary", () => {
+    expect(classifyExpenseCategory("Other")).toBe("discretionary");
+    expect(classifyExpenseCategory("Something made up")).toBe("discretionary");
+  });
+});
+
+describe("monthlyFlow", () => {
+  test("splits income, essential, discretionary, wealth-building, and what's left", () => {
+    const transactions = [
+      { date: "2026-08-01", type: "income", category: "Salary", amount: 2400 },
+      { date: "2026-08-05", type: "expense", category: "Housing", amount: 900 }, // essential
+      { date: "2026-08-06", type: "expense", category: "Utilities", amount: 140 }, // essential
+      { date: "2026-08-08", type: "expense", category: "Entertainment", amount: 80 }, // discretionary
+      { date: "2026-08-10", type: "savings", category: "Emergency Fund", amount: 200 }, // wealth-building
+    ];
+    expect(monthlyFlow(transactions, "2026-08")).toEqual({
+      income: 2400,
+      essential: 1040,
+      discretionary: 80,
+      wealthBuilding: 200,
+      unallocated: 1080, // 2400 - 1040 - 80 - 200
+    });
+  });
+
+  test("a month with nothing logged is all zeros", () => {
+    expect(monthlyFlow([], "2026-08")).toEqual({
+      income: 0, essential: 0, discretionary: 0, wealthBuilding: 0, unallocated: 0,
+    });
+  });
+});
+
+describe("liquidCash", () => {
+  test("sums only Cash-category assets", () => {
+    const assets = [
+      { category: "Cash", value: 4200 },
+      { category: "Investments", value: 6000 },
+      { category: "Cash", value: 800 },
+    ];
+    expect(liquidCash(assets)).toBe(5000);
+  });
+  test("no cash assets is 0, not an error", () => {
+    expect(liquidCash([{ category: "Property", value: 225000 }])).toBe(0);
+  });
+});
+
+describe("averageEssentialExpenditure", () => {
+  test("averages essential spend across the given months, zero-filling gaps", () => {
+    const transactions = [
+      { date: "2026-07-05", type: "expense", category: "Housing", amount: 900 },
+      { date: "2026-08-05", type: "expense", category: "Housing", amount: 900 },
+      { date: "2026-08-08", type: "expense", category: "Entertainment", amount: 500 }, // discretionary, excluded
+      // 2026-06 has nothing logged at all
+    ];
+    // (0 + 900 + 900) / 3 = 600
+    expect(averageEssentialExpenditure(transactions, ["2026-06", "2026-07", "2026-08"])).toBe(600);
+  });
+  test("no months given returns 0", () => {
+    expect(averageEssentialExpenditure([], [])).toBe(0);
+  });
+});
+
+describe("financialRunway", () => {
+  test("liquid cash divided by average essential spend, in months", () => {
+    expect(financialRunway(3000, 1000)).toBe(3);
+    expect(financialRunway(1500, 1000)).toBe(1.5);
+  });
+  test("no essential spend to divide by returns null, not Infinity", () => {
+    expect(financialRunway(3000, 0)).toBeNull();
+    expect(financialRunway(3000, null)).toBeNull();
   });
 });
 

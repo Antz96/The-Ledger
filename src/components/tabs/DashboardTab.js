@@ -7,8 +7,15 @@ import {
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, PiggyBank, Wallet } from "lucide-react";
 import { fmt, currencySymbol, monthLabel, PIE_COLORS } from "@/lib/ledgerConstants";
 import { useMonthNav } from "@/lib/useMonthNav";
-import { monthlyTotals, expensesByCategory, monthlyTrend } from "@/lib/financialCalculations";
+import { monthlyTotals, expensesByCategory, monthlyTrend, monthlyFlow } from "@/lib/financialCalculations";
 import SummaryCard from "@/components/ui/SummaryCard";
+
+const FLOW_SEGMENTS = [
+  { key: "essential", label: "Essential", color: "var(--rust)" },
+  { key: "discretionary", label: "Discretionary", color: "var(--gold)" },
+  { key: "wealthBuilding", label: "Wealth-building", color: "var(--emerald)" },
+  { key: "unallocated", label: "Unallocated", color: "var(--cyan)" },
+];
 
 export default function DashboardTab({ transactions, goal, onGoalSave, activeMonth, setActiveMonth }) {
   const { months, monthIndex, shiftMonth } = useMonthNav(transactions, activeMonth, setActiveMonth);
@@ -25,6 +32,9 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
   const expenseByCategory = useMemo(() => expensesByCategory(transactions, activeMonth), [transactions, activeMonth]);
 
   const trend = useMemo(() => monthlyTrend(transactions, months.slice(-6)), [months, transactions]);
+
+  const flow = useMemo(() => monthlyFlow(transactions, activeMonth), [transactions, activeMonth]);
+  const overspent = flow.unallocated < 0;
 
   function handleGoalSave() {
     const g = parseFloat(goalDraft);
@@ -48,6 +58,36 @@ export default function DashboardTab({ transactions, goal, onGoalSave, activeMon
         <SummaryCard icon={<TrendingDown size={16} />} label="Expenses" value={fmt(totals.expense)} color="var(--rust)" />
         <SummaryCard icon={<PiggyBank size={16} />} label="Saved" value={fmt(totals.savings)} color="var(--gold)" />
         <SummaryCard icon={<Wallet size={16} />} label="Left over" value={fmt(net)} color={net >= 0 ? "var(--emerald)" : "var(--rust)"} />
+      </div>
+
+      <div className="ledger-card p-4 sm:p-5 mb-6">
+        <p className="serif text-sm tracking-wide text-[var(--muted)] mb-1">Monthly flow</p>
+        <p className="text-xs text-[var(--faint)] mb-3">How this month&apos;s income splits across essential spend, discretionary spend, and wealth-building.</p>
+        {flow.income <= 0 ? (
+          <p className="text-xs text-[var(--faint)] mono py-4 text-center">No income logged this month yet.</p>
+        ) : overspent ? (
+          <p className="text-xs" style={{ color: "var(--rust)" }}>
+            Spent and saved {fmt(flow.essential + flow.discretionary + flow.wealthBuilding)} against {fmt(flow.income)} of income this month — {fmt(Math.abs(flow.unallocated))} more than came in.
+          </p>
+        ) : (
+          <>
+            <div className="h-3 w-full rounded-full overflow-hidden flex" style={{ background: "var(--panel-hi)" }}>
+              {FLOW_SEGMENTS.map((s) => {
+                const pct = (flow[s.key] / flow.income) * 100;
+                return pct > 0 ? <div key={s.key} style={{ width: `${pct}%`, background: s.color }} title={`${s.label}: ${fmt(flow[s.key])}`} /> : null;
+              })}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+              {FLOW_SEGMENTS.map((s) => (
+                <div key={s.key} className="flex items-center gap-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: s.color }} />
+                  <span className="text-[var(--muted)]">{s.label}</span>
+                  <span className="mono text-[var(--text)] ml-auto">{fmt(flow[s.key])}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="ledger-card p-4 sm:p-5 mb-6">

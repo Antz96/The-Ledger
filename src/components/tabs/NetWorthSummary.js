@@ -3,17 +3,29 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { PiggyBank, TrendingDown, Wallet, ArrowRight } from "lucide-react";
-import { fmt, PIE_COLORS } from "@/lib/ledgerConstants";
-import { netWorth as calcNetWorth, groupByCategory } from "@/lib/financialCalculations";
+import { PiggyBank, TrendingDown, Wallet, Landmark, Clock, ArrowRight } from "lucide-react";
+import { fmt, PIE_COLORS, lastNMonthKeys } from "@/lib/ledgerConstants";
+import {
+  netWorth as calcNetWorth,
+  groupByCategory,
+  liquidCash,
+  averageEssentialExpenditure,
+  financialRunway,
+} from "@/lib/financialCalculations";
 import SummaryCard from "@/components/ui/SummaryCard";
 import NetWorthRing from "@/components/tabs/NetWorthRing";
 
-export default function NetWorthSummary({ assets, liabilities, goalPct }) {
+export default function NetWorthSummary({ assets, liabilities, transactions = [], goalPct }) {
   const { totalAssets, totalLiabilities, netWorth } = useMemo(() => calcNetWorth(assets, liabilities), [assets, liabilities]);
 
   const assetsByCategory = useMemo(() => groupByCategory(assets, "value"), [assets]);
   const liabilitiesByCategory = useMemo(() => groupByCategory(liabilities, "balance"), [liabilities]);
+
+  const cashPosition = useMemo(() => liquidCash(assets), [assets]);
+  const runwayMonths = useMemo(() => {
+    const avgEssential = averageEssentialExpenditure(transactions, lastNMonthKeys(6));
+    return financialRunway(cashPosition, avgEssential);
+  }, [transactions, cashPosition]);
 
   if (assets.length === 0 && liabilities.length === 0) {
     return (
@@ -49,6 +61,17 @@ export default function NetWorthSummary({ assets, liabilities, goalPct }) {
           label="Net worth"
           value={fmt(netWorth)}
           color={netWorth >= 0 ? "var(--emerald)" : "var(--rust)"}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <SummaryCard icon={<Landmark size={16} />} label="Cash position" value={fmt(cashPosition)} color="var(--cyan)" />
+        <SummaryCard
+          icon={<Clock size={16} />}
+          label="Financial runway"
+          value={runwayMonths === null ? "—" : `${runwayMonths.toFixed(1)} mo`}
+          color="var(--cyan)"
+          caption="cash ÷ avg. essential spend, last 6 mo"
         />
       </div>
 

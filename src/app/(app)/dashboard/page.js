@@ -1,18 +1,19 @@
 "use client";
 
 import { useLedgerData } from "@/lib/LedgerDataContext";
+import { monthlyTotals } from "@/lib/financialCalculations";
 import NetWorthSummary from "@/components/tabs/NetWorthSummary";
 import DashboardTab from "@/components/tabs/DashboardTab";
 import RecommendedForYou from "@/components/tabs/RecommendedForYou";
 
 export default function DashboardPage() {
   const { assets, liabilities, transactions, goal, handleGoalSave, activeMonth, setActiveMonth, profile, articles } = useLedgerData();
-  const totalSaved = transactions.filter((t) => t.type === "savings").reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const totalSaved = monthlyTotals(transactions).savings;
   const goalPct = goal > 0 ? Math.min(100, (totalSaved / goal) * 100) : 0;
   return (
     <>
       <RecommendedForYou tags={profile?.tags} articles={articles} />
-      <NetWorthSummary assets={assets} liabilities={liabilities} goalPct={goalPct} />
+      <NetWorthSummary assets={assets} liabilities={liabilities} transactions={transactions} goalPct={goalPct} />
       <DashboardTab
         transactions={transactions}
         goal={goal}
