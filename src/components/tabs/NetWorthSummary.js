@@ -15,11 +15,16 @@ import {
 import SummaryCard from "@/components/ui/SummaryCard";
 import NetWorthRing from "@/components/tabs/NetWorthRing";
 
+// Same convention OpportunityDetailTab uses for these four purposes, so the
+// color means the same thing everywhere it appears in the app.
+const PURPOSE_COLOR = { Safety: "var(--emerald)", Growth: "var(--gold)", Income: "var(--cyan)", Speculation: "var(--rust)" };
+
 export default function NetWorthSummary({ assets, liabilities, transactions = [], netWorthSnapshots = [], goalPct }) {
   const { totalAssets, totalLiabilities, netWorth } = useMemo(() => calcNetWorth(assets, liabilities), [assets, liabilities]);
 
   const assetsByCategory = useMemo(() => groupByCategory(assets, "value"), [assets]);
   const liabilitiesByCategory = useMemo(() => groupByCategory(liabilities, "balance"), [liabilities]);
+  const assetsByPurpose = useMemo(() => groupByCategory(assets, "value", "purpose"), [assets]);
 
   const cashPosition = useMemo(() => liquidCash(assets), [assets]);
   const runwayMonths = useMemo(() => {
@@ -112,6 +117,44 @@ export default function NetWorthSummary({ assets, liabilities, transactions = []
               <Line type="monotone" dataKey="Net worth" stroke="var(--cyan)" strokeWidth={2} dot={{ r: 3, fill: "var(--cyan)" }} />
             </LineChart>
           </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="ledger-card p-4 sm:p-5 mb-4">
+        <p className="serif text-sm tracking-wide text-[var(--muted)] mb-1">Money by purpose</p>
+        <p className="text-xs text-[var(--faint)] mb-3">Not just where your money sits — what job it&apos;s doing.</p>
+        {assetsByPurpose.length === 0 ? (
+          <p className="text-xs text-[var(--faint)] mono py-10 text-center">No assets added yet.</p>
+        ) : (
+          <>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={assetsByPurpose} dataKey="value" nameKey="name" innerRadius={45} outerRadius={75} paddingAngle={2} stroke="none">
+                  {assetsByPurpose.map((e) => <Cell key={e.name} fill={PURPOSE_COLOR[e.name] || "var(--muted)"} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v) => fmt(v)}
+                  contentStyle={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    borderRadius: 8,
+                    background: "var(--obsidian-2)",
+                    border: "1px solid var(--line)",
+                    color: "var(--text)",
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", color: "var(--muted)" }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <ul className="text-xs mt-2 space-y-1">
+              {assetsByPurpose.map((c) => (
+                <li key={c.name} className="flex justify-between text-[var(--muted)]">
+                  <span>{c.name}</span>
+                  <span className="mono">{fmt(c.value)} · {totalAssets > 0 ? Math.round((c.value / totalAssets) * 100) : 0}%</span>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 

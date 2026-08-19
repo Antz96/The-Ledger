@@ -10,10 +10,12 @@ export function sumBy(items, field) {
   return (items || []).reduce((s, item) => s + (Number(item[field]) || 0), 0);
 }
 
-export function groupByCategory(items, valueField) {
+// Sums valueField across items, grouped by groupField (defaults to "category" —
+// also used for the Wealth Map's purpose breakdown via groupField: "purpose").
+export function groupByCategory(items, valueField, groupField = "category") {
   const map = {};
   (items || []).forEach((item) => {
-    map[item.category] = (map[item.category] || 0) + (Number(item[valueField]) || 0);
+    map[item[groupField]] = (map[item[groupField]] || 0) + (Number(item[valueField]) || 0);
   });
   return Object.entries(map)
     .map(([name, value]) => ({ name, value }))

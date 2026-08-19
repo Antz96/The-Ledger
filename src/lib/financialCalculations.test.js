@@ -46,6 +46,17 @@ describe("groupByCategory", () => {
   test("empty input yields empty output", () => {
     expect(groupByCategory([], "value")).toEqual([]);
   });
+  test("groups by a different field when groupField is given (the Wealth Map's purpose breakdown)", () => {
+    const assets = [
+      { purpose: "Safety", value: 4200 },
+      { purpose: "Growth", value: 6000 },
+      { purpose: "Growth", value: 225000 },
+    ];
+    expect(groupByCategory(assets, "value", "purpose")).toEqual([
+      { name: "Growth", value: 231000 },
+      { name: "Safety", value: 4200 },
+    ]);
+  });
 });
 
 describe("netWorth", () => {
