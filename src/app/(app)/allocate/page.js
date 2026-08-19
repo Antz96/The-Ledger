@@ -4,27 +4,7 @@ import { useLedgerData } from "@/lib/LedgerDataContext";
 import AllocateTab from "@/components/tabs/AllocateTab";
 
 export default function AllocatePage() {
-  const {
-    alloc,
-    handleAllocUpdate,
-    opportunities,
-    isAdmin,
-    handleAddOpportunity,
-    handleUpdateOpportunity,
-    handleDeleteOpportunity,
-    transactions,
-  } = useLedgerData();
+  const { alloc, handleAllocUpdate, transactions } = useLedgerData();
 
-  return (
-    <AllocateTab
-      alloc={alloc}
-      onUpdateAlloc={handleAllocUpdate}
-      opportunities={opportunities}
-      isAdmin={isAdmin}
-      onAddOpportunity={handleAddOpportunity}
-      onUpdateOpportunity={handleUpdateOpportunity}
-      onDeleteOpportunity={handleDeleteOpportunity}
-      transactions={transactions}
-    />
-  );
+  return <AllocateTab alloc={alloc} onUpdateAlloc={handleAllocUpdate} transactions={transactions} />;
 }

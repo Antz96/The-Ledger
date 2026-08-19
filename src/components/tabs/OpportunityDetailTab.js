@@ -35,8 +35,8 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
     return (
       <div className="ledger-card p-4 sm:p-5 text-center">
         <p className="text-sm opacity-70 mb-3">That opportunity couldn&apos;t be found — it may have been removed.</p>
-        <Link href="/allocate" className="text-xs font-medium" style={{ color: "var(--ledger-green-soft)" }}>
-          ← Back to Allocate
+        <Link href="/explorer" className="text-xs font-medium" style={{ color: "var(--ledger-green-soft)" }}>
+          ← Back to Explorer
         </Link>
       </div>
     );
@@ -46,7 +46,7 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
 
   function handleDelete() {
     onDelete(opportunity.id);
-    router.push("/allocate");
+    router.push("/explorer");
   }
 
   if (editing) {
@@ -64,8 +64,8 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
 
   return (
     <div className="space-y-4">
-      <Link href="/allocate" className="inline-flex items-center gap-1 text-xs opacity-60 hover:opacity-100">
-        <ArrowLeft size={13} /> Back to Allocate
+      <Link href="/explorer" className="inline-flex items-center gap-1 text-xs opacity-60 hover:opacity-100">
+        <ArrowLeft size={13} /> Back to Explorer
       </Link>
 
       <div className="ledger-card p-4 sm:p-5">
