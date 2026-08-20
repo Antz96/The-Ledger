@@ -71,3 +71,14 @@ export function classifyToolsUsed(toolNames) {
     .map((name) => TOOL_CATEGORY[name] || "FACT")
     .reduce((most, category) => (SEVERITY.indexOf(category) > SEVERITY.indexOf(most) ? category : most), "FACT");
 }
+
+// Statement/payslip extraction (src/app/api/extract/route.js) always uses a
+// forced tool_choice pulling literal figures off a document — there's no
+// open-ended text generation for the model to wander into advice with, the
+// way free-form chat can. Always FACT. A named function (not a bare
+// constant) so aiCompliance.js stays the one place that classifies every AI
+// call the app makes, chat or extraction, rather than splitting that logic
+// across files.
+export function classifyExtraction() {
+  return "FACT";
+}

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { classifyUserMessage, classifyToolsUsed } from "./aiCompliance";
+import { classifyUserMessage, classifyToolsUsed, classifyExtraction } from "./aiCompliance";
 
 describe("classifyUserMessage", () => {
   test("flags requests for personalized investment/product advice as REGULATED_RISK", () => {
@@ -53,5 +53,11 @@ describe("classifyToolsUsed", () => {
 
   test("unknown tool names default to FACT rather than throwing", () => {
     expect(classifyToolsUsed(["some_future_tool"])).toBe("FACT");
+  });
+});
+
+describe("classifyExtraction", () => {
+  test("statement/payslip extraction is always FACT", () => {
+    expect(classifyExtraction()).toBe("FACT");
   });
 });

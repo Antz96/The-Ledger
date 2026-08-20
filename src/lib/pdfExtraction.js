@@ -9,7 +9,7 @@ import {
   SAVINGS_CATS,
 } from "@/lib/ledgerConstants";
 
-const MODEL = "claude-sonnet-5";
+export const MODEL = "claude-sonnet-5";
 
 let client;
 function getClient() {
