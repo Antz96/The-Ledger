@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# real user data exports (downloaded via "Download my data" while testing)
+ledger-export-*.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
