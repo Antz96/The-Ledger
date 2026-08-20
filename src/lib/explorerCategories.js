@@ -7,7 +7,7 @@ export const EXPLORER_CATEGORIES = [
     id: "cash-protection",
     title: "Cash / Protection",
     risk: ["Low"],
-    description: "Protecting capital and staying easily accessible. Best for money you might need at short notice.",
+    description: "Protecting capital and staying easily accessible — typically used for money you might need at short notice.",
     examples: ["Emergency fund", "Easy-access savings", "Cash ISA", "Fixed savings", "Premium Bonds"],
   },
   {

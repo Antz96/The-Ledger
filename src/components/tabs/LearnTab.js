@@ -8,10 +8,10 @@ export default function LearnTab() {
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <TierCard title="Low risk" color="var(--ledger-green-soft)" points={[
-          "High-yield savings accounts, money market accounts, and CDs.",
-          "FDIC/NCUA insured up to $250,000 per depositor, per bank.",
-          "Best for emergency funds and money you'll need within 1–3 years.",
-          "Returns are modest and roughly track the Fed's benchmark rate.",
+          "Easy-access savings accounts, Cash ISAs, and fixed-term savings.",
+          "FSCS protected up to £85,000 per person, per authorised bank or building society.",
+          "Typically used for emergency funds and money you'll need within 1–3 years.",
+          "Returns are modest and roughly track the Bank of England base rate.",
         ]} />
         <TierCard title="Medium risk" color="var(--gold)" points={[
           "Broad index funds (e.g. S&P 500) and diversified ETFs.",

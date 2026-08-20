@@ -11,17 +11,56 @@
 // argued with the way a model's context sometimes can, and it's directly
 // unit-testable like the rest of the calculation layer.
 
+// Built from the FCA Regulatory Red-Team Test (founder compliance checklist
+// §5.1) — every example prompt listed there, plus phrasing variants found by
+// running them through this gate and seeing which slipped past (see
+// aiComplianceRedTeam.test.js). Deliberately tuned to over-catch rather than
+// under-catch: a false positive here just means a benign message gets a
+// polite decline instead of an answer, but a false negative means a
+// personalized recommendation reaches the user unfiltered.
 const REGULATED_RISK_PATTERNS = [
-  /\bshould i (buy|sell|invest in|remortgage|refinance)\b/i,
-  /\bwhich (stock|share|fund|isa|pension|mortgage|insurance|policy)\b.*\b(should i|do you recommend|is best)\b/i,
-  /\bis .* a good (investment|stock|fund)\b/i,
-  /\b(best|which) mortgage (should|for me)\b/i,
-  /\bshould i (consolidate|pay off) my debt\b/i,
-  /\bwhat should i do with my (money|savings|pension|investments?)\b/i,
-  /\brecommend (a|an|me) (stock|share|fund|investment|mortgage|insurance|policy|financial product)\b/i,
+  // "should I buy/sell/invest in/transfer/..." — and its embedded-clause
+  // reverse order ("...what I should invest in"), since real questions are
+  // often phrased indirectly rather than as "should I ...?" head-on.
+  /\bshould i (buy|sell|invest in|remortgage|refinance|transfer|switch|fix|consolidate|pay off|take out)\b/i,
+  /\bi should (buy|sell|invest in|remortgage|refinance|transfer|switch|fix|consolidate|pay off)\b/i,
+  /\bshould i (take out|get) ((?:a|an) )?(\w+ )?(loan|mortgage|insurance|policy)\b/i,
+  // moving a pension/ISA is a personal recommendation question even without
+  // a £ amount attached (contrast with the EXECUTION "move £X" patterns,
+  // which are for a literal transfer command).
+  /\bshould i move my (pension|isa|investments?)\b/i,
+  // "which stock/fund/mortgage/... should I / do you recommend / is best /
+  // to buy / to choose / to pick" — covers both "which X should I get" and
+  // the more evasive "which X to buy" phrasing.
+  /\bwhich (stock|share|fund|isa|pension|mortgage|insurance|policy|loan)\b.*\b(should i|do you recommend|is best|to buy|to choose|to get|to pick)\b/i,
+  // debt-counselling: "which debt/credit card should I pay off/clear/prioritise",
+  // "what order should I pay off my debts" — PERG 17 territory (checklist §4.3).
+  /\bwhich (debt|credit card|loan) should i (pay off|clear|prioriti[sz]e)\b/i,
+  /\bwhat order should i (pay off|clear)\b/i,
+  // asking the assistant to pick a debt strategy for the user specifically,
+  // as opposed to explaining the mechanical difference between the two.
+  /\bshould i (use|go with|pick) (avalanche|snowball)\b/i,
+  /\bis .* a good (investment|stock|fund|idea|choice)\b/i,
+  /\bis (now|this) a good time to (buy|sell|invest)\b/i,
+  // "best mortgage for me" in any word order — "which mortgage is best for
+  // me", "pick the best loan for me", "mortgage would be best for me".
+  /\b(best|which) (mortgage|loan|insurance|pension|isa|fund|stock)\b.*\b(should|for me)\b/i,
+  /\b(mortgage|loan|insurance|pension|isa|fund|stock) (is|would be|'s) best( for me)?\b/i,
+  /\bpick the best (mortgage|loan|insurance|pension|isa|fund|stock)\b/i,
+  /\bwhat should i do with my (money|savings|pension|investments?|debt)\b/i,
+  /\brecommend (a|an|me) (stock|share|fund|investment|mortgage|insurance|policy|financial product|loan)\b/i,
   /\b(give me|need|want) financial advice\b/i,
-  /\bshould i (take out|get) (a|an) (loan|mortgage|insurance)\b/i,
+  /\btell me whether to (buy|sell)\b/i,
   /\bhow should i invest\b/i,
+  // trying to get the assistant to substitute its own judgment for a
+  // personal decision, rather than asking it to explain or calculate.
+  /\bwhat would you (personally )?(do|say|tell me|invest in|buy|choose|sell)\b/i,
+  /\bwould you (personally )?(buy|invest in|choose|pick|recommend)\b/i,
+  /\b(pick|choose|decide) (for|on behalf of) me\b/i,
+  /\btell me to go with\b/i,
+  /\bbest thing i (can|could) do with my money\b/i,
+  /\b(buy or sell|invest or not)\b/i,
+  /\btell me what to (invest in|buy|sell|choose|do with my money)\b/i,
 ];
 
 const EXECUTION_PATTERNS = [
@@ -31,6 +70,12 @@ const EXECUTION_PATTERNS = [
   /\bmake a payment\b/i,
   /\bplace (a|an) (order|trade)\b/i,
   /\b(buy|sell) \d+ (shares?|units?)\b/i,
+  // same as above but without a unit count — "sell my shares", "buy me some
+  // stock" — excluding a "should I ..." prefix, which is a question seeking
+  // advice (REGULATED_RISK, matched separately above) rather than a command
+  // to actually execute a trade.
+  /(?<!should i )\bsell (my|all my) (shares?|units?|fund|investments?)\b/i,
+  /(?<!should i )\bbuy (me )?(some |more )?(shares?|stock)\b/i,
 ];
 
 // Checks the user's message before the model is ever called. Returns

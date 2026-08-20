@@ -33,7 +33,7 @@ export default function RecommendedForYou({ tags, articles }) {
   if (matches.length === 0) return null;
 
   const focusTag = (tags || []).find((t) => FOCUS_LABELS[t]);
-  const heading = focusTag ? `Because you're focused on ${FOCUS_LABELS[focusTag]}` : "Recommended reading";
+  const heading = focusTag ? `Because you're focused on ${FOCUS_LABELS[focusTag]}` : "More to read";
 
   return (
     <div className="ledger-card p-4 sm:p-5 mb-6">

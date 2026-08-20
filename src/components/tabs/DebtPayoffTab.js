@@ -238,15 +238,18 @@ function DebtCard({ item, onUpdate, onDelete }) {
 // choice would look like (blueprint checklist §7: "does allowing a user to
 // choose avalanche/snowball create debt-counselling risk?" — by construction
 // here, Ledger never picks one, so there's nothing being recommended).
-// Neither option is pre-selected as a default "best" pick, and both are
-// styled identically except for which one is currently chosen.
+// strategy starts as null (nothing pre-selected) rather than defaulting to
+// either option — a default would itself read as a pick, even an unlabeled
+// one, per the FCA checklist's UI red-team test (§5.2: "one option
+// pre-selected"). Both options are styled identically except for which one
+// the user has actually chosen.
 function PayoffStrategy({ liabilities }) {
-  const [strategy, setStrategy] = useState("avalanche");
+  const [strategy, setStrategy] = useState(null);
   const [extra, setExtra] = useState(0);
 
   const trackedDebts = useMemo(() => liabilities.filter((l) => Number(l.balance) > 0), [liabilities]);
   const result = useMemo(
-    () => simulateDebtPayoffStrategy(trackedDebts, extra, strategy),
+    () => (strategy ? simulateDebtPayoffStrategy(trackedDebts, extra, strategy) : null),
     [trackedDebts, extra, strategy]
   );
 
@@ -275,52 +278,58 @@ function PayoffStrategy({ liabilities }) {
         />
       </div>
 
-      <div className="mb-4">
-        <label htmlFor="strategy-extra" className="block text-[10px] mono opacity-60 mb-1">EXTRA PER MONTH, BEYOND MINIMUMS</label>
-        <input
-          id="strategy-extra"
-          type="number" min="0" step="0.01"
-          value={extra}
-          onChange={(e) => setExtra(Math.max(0, parseFloat(e.target.value) || 0))}
-          className="w-40 text-sm mono border rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)]"
-          style={{ borderColor: "var(--line)" }}
-        />
-      </div>
-
-      {result.monthsToDebtFree === null ? (
-        <p className="text-xs mb-3" style={{ color: "var(--rust)" }}>
-          At this rate, these debts wouldn&apos;t clear within 50 years — try a higher extra payment.
-        </p>
+      {!strategy ? (
+        <p className="text-xs opacity-50">Pick one above to see the numbers.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <p className="text-[10px] mono opacity-50 mb-1">DEBT-FREE IN</p>
-            <p className="text-lg font-semibold">{result.monthsToDebtFree} mo</p>
+        <>
+          <div className="mb-4">
+            <label htmlFor="strategy-extra" className="block text-[10px] mono opacity-60 mb-1">EXTRA PER MONTH, BEYOND MINIMUMS</label>
+            <input
+              id="strategy-extra"
+              type="number" min="0" step="0.01"
+              value={extra}
+              onChange={(e) => setExtra(Math.max(0, parseFloat(e.target.value) || 0))}
+              className="w-40 text-sm mono border rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)]"
+              style={{ borderColor: "var(--line)" }}
+            />
           </div>
-          <div>
-            <p className="text-[10px] mono opacity-50 mb-1">TOTAL INTEREST</p>
-            <p className="text-lg font-semibold" style={{ color: "var(--rust)" }}>{fmt(result.totalInterestPaid)}</p>
+
+          {result.monthsToDebtFree === null ? (
+            <p className="text-xs mb-3" style={{ color: "var(--rust)" }}>
+              At this rate, these debts wouldn&apos;t clear within 50 years — try a higher extra payment.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <p className="text-[10px] mono opacity-50 mb-1">DEBT-FREE IN</p>
+                <p className="text-lg font-semibold">{result.monthsToDebtFree} mo</p>
+              </div>
+              <div>
+                <p className="text-[10px] mono opacity-50 mb-1">TOTAL INTEREST</p>
+                <p className="text-lg font-semibold" style={{ color: "var(--rust)" }}>{fmt(result.totalInterestPaid)}</p>
+              </div>
+            </div>
+          )}
+
+          <p className="text-[10px] mono opacity-50 mb-1.5">ORDER</p>
+          <ol className="text-xs space-y-1 mb-3">
+            {result.order.map((d, i) => (
+              <li key={d.id} className="flex justify-between text-[var(--muted)]">
+                <span>{i + 1}. {d.name}</span>
+                <span className="mono">{d.monthsToPayoff === null ? "—" : `paid off month ${d.monthsToPayoff}`}</span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="flex items-start gap-2 pt-2 border-t" style={{ borderColor: "var(--line)" }}>
+            <ShieldAlert size={13} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
+            <p className="text-[11px] leading-relaxed text-[var(--faint)]">
+              Real repayments depend on your actual lender terms, which can differ from a flat interest-rate
+              assumption. Debts without a rate set are treated as 0%.
+            </p>
           </div>
-        </div>
+        </>
       )}
-
-      <p className="text-[10px] mono opacity-50 mb-1.5">ORDER</p>
-      <ol className="text-xs space-y-1 mb-3">
-        {result.order.map((d, i) => (
-          <li key={d.id} className="flex justify-between text-[var(--muted)]">
-            <span>{i + 1}. {d.name}</span>
-            <span className="mono">{d.monthsToPayoff === null ? "—" : `paid off month ${d.monthsToPayoff}`}</span>
-          </li>
-        ))}
-      </ol>
-
-      <div className="flex items-start gap-2 pt-2 border-t" style={{ borderColor: "var(--line)" }}>
-        <ShieldAlert size={13} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
-        <p className="text-[11px] leading-relaxed text-[var(--faint)]">
-          Real repayments depend on your actual lender terms, which can differ from a flat interest-rate
-          assumption. Debts without a rate set are treated as 0%.
-        </p>
-      </div>
     </div>
   );
 }

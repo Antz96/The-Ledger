@@ -19,7 +19,9 @@ export function LedgerDataProvider({ session, children }) {
 
   const [transactions, setTransactions] = useState([]);
   const [goal, setGoal] = useState(5000);
-  const [alloc, setAlloc] = useState({ monthly: 500, low: 60, medium: 30, high: 10 });
+  // 0/0/0 rather than a pre-picked split — see 0024_neutral_allocation_default.sql
+  // for why a non-zero default would read as Ledger's own suggested allocation.
+  const [alloc, setAlloc] = useState({ monthly: 500, low: 0, medium: 0, high: 0 });
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [activeMonth, setActiveMonth] = useState(todayKey());
   const [rates, setRates] = useState([]);
