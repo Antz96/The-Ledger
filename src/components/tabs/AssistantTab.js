@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bot, Send, User, Sparkles, ArrowRight } from "lucide-react";
 import { sendAssistantMessage } from "@/lib/assistantApi";
 import { SECTIONS } from "@/lib/navSections";
+import AuditLog from "@/components/tabs/AuditLog";
 
 const EXAMPLE_PROMPTS = [
   "What's my net worth right now?",
@@ -118,6 +119,8 @@ export default function AssistantTab({ displayName }) {
           </button>
         </form>
       </div>
+
+      <AuditLog />
     </div>
   );
 }
