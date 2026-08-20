@@ -40,4 +40,12 @@ export const EXPLORER_CATEGORIES = [
   },
 ];
 
-export const RISK_FILTERS = ["All", "Low", "Medium", "High"];
+export const RISK_LEVELS = ["Low", "Medium", "High"];
+export const RISK_FILTERS = ["All", ...RISK_LEVELS];
+export const RISK_COLOR = { Low: "var(--ledger-green-soft)", Medium: "var(--gold)", High: "var(--rust)" };
+
+export const LIQUIDITY_OPTIONS = ["Immediate", "Months", "Years", "10+ Years"];
+export const LIQUIDITY_FILTERS = ["All", ...LIQUIDITY_OPTIONS];
+
+export const HORIZON_OPTIONS = ["Less than 1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
+export const HORIZON_FILTERS = ["All", ...HORIZON_OPTIONS];

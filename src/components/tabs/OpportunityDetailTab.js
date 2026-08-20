@@ -4,14 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Pencil, Trash2, ShieldAlert, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
-import { EXPLORER_CATEGORIES } from "@/lib/explorerCategories";
-
-const RISK_COLOR = { Low: "var(--emerald)", Medium: "var(--gold)", High: "var(--rust)" };
-const PURPOSE_COLOR = { Safety: "var(--emerald)", Growth: "var(--gold)", Income: "var(--cyan)", Speculation: "var(--rust)" };
-const LIQUIDITY_OPTIONS = ["Immediate", "Months", "Years", "10+ Years"];
-const HORIZON_OPTIONS = ["Less than 1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
-const PURPOSE_OPTIONS = ["Safety", "Growth", "Income", "Speculation"];
-const RISK_OPTIONS = ["Low", "Medium", "High"];
+import { EXPLORER_CATEGORIES, RISK_COLOR, RISK_LEVELS as RISK_OPTIONS, LIQUIDITY_OPTIONS, HORIZON_OPTIONS } from "@/lib/explorerCategories";
+import { ASSET_PURPOSES as PURPOSE_OPTIONS, PURPOSE_COLOR } from "@/lib/ledgerConstants";
 
 function bullets(text) {
   return text.split("\n").map((line) => line.trim()).filter(Boolean);

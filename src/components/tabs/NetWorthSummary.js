@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { PiggyBank, TrendingDown, Wallet, Landmark, Clock, ArrowRight } from "lucide-react";
-import { fmt, PIE_COLORS, lastNMonthKeys } from "@/lib/ledgerConstants";
+import { fmt, PIE_COLORS, lastNMonthKeys, PURPOSE_COLOR } from "@/lib/ledgerConstants";
 import {
   netWorth as calcNetWorth,
   groupByCategory,
@@ -14,10 +14,6 @@ import {
 } from "@/lib/financialCalculations";
 import SummaryCard from "@/components/ui/SummaryCard";
 import NetWorthRing from "@/components/tabs/NetWorthRing";
-
-// Same convention OpportunityDetailTab uses for these four purposes, so the
-// color means the same thing everywhere it appears in the app.
-const PURPOSE_COLOR = { Safety: "var(--emerald)", Growth: "var(--gold)", Income: "var(--cyan)", Speculation: "var(--rust)" };
 
 export default function NetWorthSummary({ assets, liabilities, transactions = [], netWorthSnapshots = [], goalPct }) {
   const { totalAssets, totalLiabilities, netWorth } = useMemo(() => calcNetWorth(assets, liabilities), [assets, liabilities]);

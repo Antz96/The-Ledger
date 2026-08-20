@@ -31,6 +31,7 @@ export const LIABILITY_CATEGORIES = ["Credit Card", "Loan", "Mortgage", "Other"]
 // What job is this money doing? Defaults from category, but always editable — the whole point is
 // that "Investments" could be a Growth fund or an Income bond, and the person adding it knows which.
 export const ASSET_PURPOSES = ["Safety", "Growth", "Income", "Speculation"];
+export const PURPOSE_COLOR = { Safety: "var(--emerald)", Growth: "var(--gold)", Income: "var(--cyan)", Speculation: "var(--rust)" };
 export const CATEGORY_PURPOSE_DEFAULT = {
   Cash: "Safety",
   Investments: "Growth",

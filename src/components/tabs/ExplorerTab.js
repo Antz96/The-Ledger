@@ -3,21 +3,47 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
-import { fmt } from "@/lib/ledgerConstants";
-import { EXPLORER_CATEGORIES, RISK_FILTERS } from "@/lib/explorerCategories";
+import { fmt, currencySymbol, ASSET_PURPOSES } from "@/lib/ledgerConstants";
+import {
+  EXPLORER_CATEGORIES,
+  RISK_LEVELS,
+  RISK_FILTERS,
+  RISK_COLOR,
+  LIQUIDITY_FILTERS,
+  HORIZON_FILTERS,
+} from "@/lib/explorerCategories";
 import { allocationSplit } from "@/lib/financialCalculations";
 
-const RISK_COLOR = { Low: "var(--ledger-green-soft)", Medium: "var(--gold)", High: "var(--rust)" };
+const PURPOSE_FILTERS = ["All", ...ASSET_PURPOSES];
 
 export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpportunity, onUpdateOpportunity, onDeleteOpportunity }) {
+  const [exploreAmount, setExploreAmount] = useState(alloc.monthly);
   const [riskFilter, setRiskFilter] = useState("All");
+  const [purposeFilter, setPurposeFilter] = useState("All");
+  const [liquidityFilter, setLiquidityFilter] = useState("All");
+  const [horizonFilter, setHorizonFilter] = useState("All");
 
-  const allocDollars = useMemo(() => allocationSplit(alloc), [alloc]);
+  // Uses the real risk-tier split from Allocate, applied to whatever amount
+  // is being explored here — which can be hypothetical, not necessarily the
+  // real monthly figure it defaults from.
+  const exploreDollars = useMemo(() => allocationSplit({ ...alloc, monthly: exploreAmount }), [alloc, exploreAmount]);
   const visible = useMemo(
     () => EXPLORER_CATEGORIES.filter((c) => riskFilter === "All" || c.risk.includes(riskFilter)),
     [riskFilter]
   );
-  const activeAllocated = riskFilter !== "All" ? allocDollars[riskFilter.toLowerCase()] : null;
+  const activeAllocated = riskFilter !== "All" ? exploreDollars[riskFilter.toLowerCase()] : null;
+
+  const filtersActive = purposeFilter !== "All" || liquidityFilter !== "All" || horizonFilter !== "All";
+  const filteredOpportunities = useMemo(
+    () =>
+      opportunities.filter(
+        (o) =>
+          (purposeFilter === "All" || o.typical_purpose === purposeFilter) &&
+          (liquidityFilter === "All" || o.liquidity === liquidityFilter) &&
+          (horizonFilter === "All" || o.time_horizon === horizonFilter)
+      ),
+    [opportunities, purposeFilter, liquidityFilter, horizonFilter]
+  );
 
   return (
     <div className="space-y-4">
@@ -25,7 +51,22 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
         <p className="serif text-sm tracking-wide opacity-80 mb-1">Where it could go</p>
         <p className="text-xs opacity-50 mb-4">Browse the categories that fit each risk tier, and what&apos;s actually in them.</p>
 
-        <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Filter by risk">
+        <div className="mb-4">
+          <label htmlFor="explore-amount" className="block text-[10px] mono opacity-60 mb-1">HOW MUCH ARE YOU LOOKING TO EXPLORE?</label>
+          <div className="flex items-center gap-2">
+            <span className="mono text-sm text-[var(--text)]">{currencySymbol()}</span>
+            <input
+              id="explore-amount"
+              type="number" min="0"
+              value={exploreAmount}
+              onChange={(e) => setExploreAmount(Math.max(0, parseFloat(e.target.value) || 0))}
+              className="w-32 border border-[var(--line)] rounded-lg px-2 py-1.5 text-sm mono bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+            />
+            <span className="text-xs text-[var(--muted)]">/ month</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap mb-4" role="group" aria-label="Filter by risk">
           {RISK_FILTERS.map((r) => (
             <button
               key={r}
@@ -42,8 +83,44 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
             </button>
           ))}
           {activeAllocated !== null && (
-            <span className="text-xs mono opacity-60">{fmt(activeAllocated)}/month allocated to {riskFilter.toLowerCase()} risk</span>
+            <span className="text-xs mono opacity-60">{fmt(activeAllocated)}/month at {riskFilter.toLowerCase()} risk, at your current split</span>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label htmlFor="explore-purpose" className="block text-[10px] mono opacity-60 mb-1">PURPOSE</label>
+            <select
+              id="explore-purpose"
+              value={purposeFilter}
+              onChange={(e) => setPurposeFilter(e.target.value)}
+              className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+            >
+              {PURPOSE_FILTERS.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="explore-liquidity" className="block text-[10px] mono opacity-60 mb-1">LIQUIDITY</label>
+            <select
+              id="explore-liquidity"
+              value={liquidityFilter}
+              onChange={(e) => setLiquidityFilter(e.target.value)}
+              className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+            >
+              {LIQUIDITY_FILTERS.map((l) => <option key={l} value={l} style={{ color: "var(--obsidian-2)" }}>{l}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="explore-horizon" className="block text-[10px] mono opacity-60 mb-1">TIME HORIZON</label>
+            <select
+              id="explore-horizon"
+              value={horizonFilter}
+              onChange={(e) => setHorizonFilter(e.target.value)}
+              className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+            >
+              {HORIZON_FILTERS.map((h) => <option key={h} value={h} style={{ color: "var(--obsidian-2)" }}>{h}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -72,7 +149,8 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
             </ul>
 
             <CuratedOpportunities
-              opportunities={opportunities.filter((o) => o.category_id === cat.id)}
+              opportunities={filteredOpportunities.filter((o) => o.category_id === cat.id)}
+              filtersActive={filtersActive}
               isAdmin={isAdmin}
               onUpdate={onUpdateOpportunity}
               onDelete={onDeleteOpportunity}
@@ -97,14 +175,14 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
   );
 }
 
-function CuratedOpportunities({ opportunities, isAdmin, onUpdate, onDelete }) {
-  if (opportunities.length === 0 && !isAdmin) return null;
+function CuratedOpportunities({ opportunities, filtersActive, isAdmin, onUpdate, onDelete }) {
+  if (opportunities.length === 0 && !isAdmin && !filtersActive) return null;
 
   return (
     <div className="pt-2 border-t" style={{ borderColor: "var(--line)" }}>
       <p className="text-[10px] mono opacity-50 mb-1.5 mt-2">CURATED</p>
       {opportunities.length === 0 ? (
-        <p className="text-xs opacity-40 mono">None added yet.</p>
+        <p className="text-xs opacity-40 mono">{filtersActive ? "None match your filters." : "None added yet."}</p>
       ) : (
         <ul className="space-y-2">
           {opportunities.map((o) => (
@@ -143,7 +221,7 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
             onChange={(e) => setDraft((d) => ({ ...d, risk_level: e.target.value }))}
             className="text-xs border border-[var(--line)] rounded px-1.5 py-1 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {["Low", "Medium", "High"].map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
+            {RISK_LEVELS.map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
           </select>
           <input
             aria-label={`Source URL for ${opportunity.name}`}
@@ -264,7 +342,7 @@ function AddOpportunityForm({ onAdd }) {
             onChange={(e) => setForm((f) => ({ ...f, risk_level: e.target.value }))}
             className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           >
-            {["Low", "Medium", "High"].map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
+            {RISK_LEVELS.map((r) => <option key={r} value={r} style={{ color: "var(--obsidian-2)" }}>{r}</option>)}
           </select>
         </div>
         <div className="col-span-2 sm:col-span-3">
