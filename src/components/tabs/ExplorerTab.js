@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink, GitCompare } from "lucide-react";
 import { fmt, currencySymbol, ASSET_PURPOSES } from "@/lib/ledgerConstants";
 import {
   EXPLORER_CATEGORIES,
@@ -17,11 +18,17 @@ import { allocationSplit } from "@/lib/financialCalculations";
 const PURPOSE_FILTERS = ["All", ...ASSET_PURPOSES];
 
 export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpportunity, onUpdateOpportunity, onDeleteOpportunity }) {
+  const router = useRouter();
   const [exploreAmount, setExploreAmount] = useState(alloc.monthly);
   const [riskFilter, setRiskFilter] = useState("All");
   const [purposeFilter, setPurposeFilter] = useState("All");
   const [liquidityFilter, setLiquidityFilter] = useState("All");
   const [horizonFilter, setHorizonFilter] = useState("All");
+  const [compareIds, setCompareIds] = useState([]);
+
+  function toggleCompare(id) {
+    setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   // Uses the real risk-tier split from Allocate, applied to whatever amount
   // is being explored here — which can be hypothetical, not necessarily the
@@ -154,10 +161,28 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
               isAdmin={isAdmin}
               onUpdate={onUpdateOpportunity}
               onDelete={onDeleteOpportunity}
+              compareIds={compareIds}
+              onToggleCompare={toggleCompare}
             />
           </div>
         ))}
       </div>
+
+      {compareIds.length >= 2 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-full ledger-card shadow-lg">
+          <span className="text-xs mono opacity-70">{compareIds.length} selected</span>
+          <button
+            onClick={() => router.push(`/explorer/compare?ids=${compareIds.join(",")}`)}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full text-[var(--obsidian)]"
+            style={{ background: "linear-gradient(140deg, var(--emerald), var(--cyan))" }}
+          >
+            <GitCompare size={13} /> Compare
+          </button>
+          <button onClick={() => setCompareIds([])} aria-label="Clear comparison selection" className="text-[var(--faint)] hover:text-[var(--text)] px-0.5">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {isAdmin && <AddOpportunityForm onAdd={onAddOpportunity} />}
 
@@ -175,7 +200,7 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
   );
 }
 
-function CuratedOpportunities({ opportunities, filtersActive, isAdmin, onUpdate, onDelete }) {
+function CuratedOpportunities({ opportunities, filtersActive, isAdmin, onUpdate, onDelete, compareIds, onToggleCompare }) {
   if (opportunities.length === 0 && !isAdmin && !filtersActive) return null;
 
   return (
@@ -186,7 +211,15 @@ function CuratedOpportunities({ opportunities, filtersActive, isAdmin, onUpdate,
       ) : (
         <ul className="space-y-2">
           {opportunities.map((o) => (
-            <OpportunityRow key={o.id} opportunity={o} isAdmin={isAdmin} onUpdate={onUpdate} onDelete={onDelete} />
+            <OpportunityRow
+              key={o.id}
+              opportunity={o}
+              isAdmin={isAdmin}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              checked={compareIds.includes(o.id)}
+              onToggleCompare={onToggleCompare}
+            />
           ))}
         </ul>
       )}
@@ -194,7 +227,7 @@ function CuratedOpportunities({ opportunities, filtersActive, isAdmin, onUpdate,
   );
 }
 
-function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
+function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete, checked, onToggleCompare }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(opportunity);
 
@@ -258,28 +291,37 @@ function OpportunityRow({ opportunity, isAdmin, onUpdate, onDelete }) {
 
   return (
     <li className="text-xs flex items-start justify-between gap-2">
-      <div>
-        <Link href={`/explorer/${opportunity.id}`} className="font-medium hover:underline" style={{ color: "var(--text)" }}>
-          {opportunity.name}
-        </Link>
-        <span
-          className="text-[10px] mono ml-1.5 px-1 py-0.5 rounded"
-          style={{ background: `${RISK_COLOR[opportunity.risk_level]}1A`, color: RISK_COLOR[opportunity.risk_level] }}
-        >
-          {opportunity.risk_level}
-        </span>
-        {opportunity.description && <p className="opacity-60 mt-0.5">{opportunity.description}</p>}
-        {opportunity.source_url && (
-          <a
-            href={opportunity.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-0.5 mt-0.5 opacity-70 hover:opacity-100"
-            style={{ color: "var(--ledger-green-soft)" }}
+      <div className="flex items-start gap-1.5">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={() => onToggleCompare(opportunity.id)}
+          aria-label={`Select ${opportunity.name} to compare`}
+          className="mt-1 flex-shrink-0"
+        />
+        <div>
+          <Link href={`/explorer/${opportunity.id}`} className="font-medium hover:underline" style={{ color: "var(--text)" }}>
+            {opportunity.name}
+          </Link>
+          <span
+            className="text-[10px] mono ml-1.5 px-1 py-0.5 rounded"
+            style={{ background: `${RISK_COLOR[opportunity.risk_level]}1A`, color: RISK_COLOR[opportunity.risk_level] }}
           >
-            <ExternalLink size={9} /> source
-          </a>
-        )}
+            {opportunity.risk_level}
+          </span>
+          {opportunity.description && <p className="opacity-60 mt-0.5">{opportunity.description}</p>}
+          {opportunity.source_url && (
+            <a
+              href={opportunity.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 mt-0.5 opacity-70 hover:opacity-100"
+              style={{ color: "var(--ledger-green-soft)" }}
+            >
+              <ExternalLink size={9} /> source
+            </a>
+          )}
+        </div>
       </div>
       {isAdmin && (
         <div className="flex gap-1 flex-shrink-0">
