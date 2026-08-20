@@ -49,3 +49,28 @@ export const LIQUIDITY_FILTERS = ["All", ...LIQUIDITY_OPTIONS];
 
 export const HORIZON_OPTIONS = ["Less than 1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
 export const HORIZON_FILTERS = ["All", ...HORIZON_OPTIONS];
+
+// Blueprint section 10's remaining two filter dimensions — how much
+// background knowledge a product typically assumes, and what kind of
+// product it structurally is (distinct from EXPLORER_CATEGORIES, which
+// groups by risk tier, not product type).
+export const KNOWLEDGE_LEVELS = ["Beginner", "Intermediate", "Advanced"];
+export const KNOWLEDGE_FILTERS = ["All", ...KNOWLEDGE_LEVELS];
+
+export const PRODUCT_TYPES = [
+  "Cash", "Savings", "Bonds", "Funds", "ETFs", "Equities",
+  "Property-related", "Pension", "Alternative assets", "Crypto", "Other",
+];
+export const PRODUCT_TYPE_FILTERS = ["All", ...PRODUCT_TYPES];
+
+// HORIZON_OPTIONS bucketed by roughly how many months out a date falls —
+// used to translate a saved goal's target_date into a starting Explorer
+// filter, so "explore for this goal" means something concrete without
+// Ledger judging which bucket is "right" for the user.
+export function horizonBucketForMonthsAway(monthsAway) {
+  if (monthsAway < 12) return "Less than 1 year";
+  if (monthsAway < 36) return "1-3 years";
+  if (monthsAway < 60) return "3-5 years";
+  if (monthsAway < 120) return "5-10 years";
+  return "10+ years";
+}

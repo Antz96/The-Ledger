@@ -12,19 +12,46 @@ import {
   RISK_COLOR,
   LIQUIDITY_FILTERS,
   HORIZON_FILTERS,
+  KNOWLEDGE_FILTERS,
+  PRODUCT_TYPE_FILTERS,
+  horizonBucketForMonthsAway,
 } from "@/lib/explorerCategories";
 import { allocationSplit } from "@/lib/financialCalculations";
 
 const PURPOSE_FILTERS = ["All", ...ASSET_PURPOSES];
 
-export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpportunity, onUpdateOpportunity, onDeleteOpportunity }) {
+function monthsUntil(dateString) {
+  const target = new Date(dateString);
+  const now = new Date();
+  return (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+}
+
+export default function ExplorerTab({
+  alloc, opportunities, financialGoals = [], isAdmin, onAddOpportunity, onUpdateOpportunity, onDeleteOpportunity,
+}) {
   const router = useRouter();
   const [exploreAmount, setExploreAmount] = useState(alloc.monthly);
   const [riskFilter, setRiskFilter] = useState("All");
   const [purposeFilter, setPurposeFilter] = useState("All");
   const [liquidityFilter, setLiquidityFilter] = useState("All");
   const [horizonFilter, setHorizonFilter] = useState("All");
+  const [knowledgeFilter, setKnowledgeFilter] = useState("All");
+  const [productTypeFilter, setProductTypeFilter] = useState("All");
+  const [goalFilterId, setGoalFilterId] = useState("");
   const [compareIds, setCompareIds] = useState([]);
+
+  const goalsWithDates = useMemo(() => financialGoals.filter((g) => g.target_date), [financialGoals]);
+
+  // Selecting a goal translates its own target_date into a starting Time
+  // Horizon filter — a calculation ("this goal is ~14 months out, so
+  // that's the 1-3 years bucket"), not Ledger judging what's right for
+  // that goal. The user can still change the horizon filter afterward.
+  function handleGoalFilterChange(id) {
+    setGoalFilterId(id);
+    if (!id) return;
+    const goal = goalsWithDates.find((g) => g.id === id);
+    if (goal) setHorizonFilter(horizonBucketForMonthsAway(monthsUntil(goal.target_date)));
+  }
 
   function toggleCompare(id) {
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -40,16 +67,20 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
   );
   const activeAllocated = riskFilter !== "All" ? exploreDollars[riskFilter.toLowerCase()] : null;
 
-  const filtersActive = purposeFilter !== "All" || liquidityFilter !== "All" || horizonFilter !== "All";
+  const filtersActive =
+    purposeFilter !== "All" || liquidityFilter !== "All" || horizonFilter !== "All" ||
+    knowledgeFilter !== "All" || productTypeFilter !== "All";
   const filteredOpportunities = useMemo(
     () =>
       opportunities.filter(
         (o) =>
           (purposeFilter === "All" || o.typical_purpose === purposeFilter) &&
           (liquidityFilter === "All" || o.liquidity === liquidityFilter) &&
-          (horizonFilter === "All" || o.time_horizon === horizonFilter)
+          (horizonFilter === "All" || o.time_horizon === horizonFilter) &&
+          (knowledgeFilter === "All" || o.knowledge_level === knowledgeFilter) &&
+          (productTypeFilter === "All" || o.product_type === productTypeFilter)
       ),
-    [opportunities, purposeFilter, liquidityFilter, horizonFilter]
+    [opportunities, purposeFilter, liquidityFilter, horizonFilter, knowledgeFilter, productTypeFilter]
   );
 
   return (
@@ -94,7 +125,7 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
           <div>
             <label htmlFor="explore-purpose" className="block text-[10px] mono opacity-60 mb-1">PURPOSE</label>
             <select
@@ -129,6 +160,50 @@ export default function ExplorerTab({ alloc, opportunities, isAdmin, onAddOpport
             </select>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label htmlFor="explore-knowledge" className="block text-[10px] mono opacity-60 mb-1">KNOWLEDGE NEEDED</label>
+            <select
+              id="explore-knowledge"
+              value={knowledgeFilter}
+              onChange={(e) => setKnowledgeFilter(e.target.value)}
+              className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+            >
+              {KNOWLEDGE_FILTERS.map((k) => <option key={k} value={k} style={{ color: "var(--obsidian-2)" }}>{k}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="explore-product-type" className="block text-[10px] mono opacity-60 mb-1">PRODUCT TYPE</label>
+            <select
+              id="explore-product-type"
+              value={productTypeFilter}
+              onChange={(e) => setProductTypeFilter(e.target.value)}
+              className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+            >
+              {PRODUCT_TYPE_FILTERS.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
+            </select>
+          </div>
+          {goalsWithDates.length > 0 && (
+            <div>
+              <label htmlFor="explore-goal" className="block text-[10px] mono opacity-60 mb-1">EXPLORING FOR A GOAL?</label>
+              <select
+                id="explore-goal"
+                value={goalFilterId}
+                onChange={(e) => handleGoalFilterChange(e.target.value)}
+                className="w-full text-sm border border-[var(--line)] rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
+              >
+                <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+                {goalsWithDates.map((g) => <option key={g.id} value={g.id} style={{ color: "var(--obsidian-2)" }}>{g.name}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+        {goalFilterId && (
+          <p className="text-xs mono opacity-50 mt-2">
+            Set the time horizon filter to match this goal&apos;s target date — feel free to change it.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -514,6 +514,16 @@ export const ASSESSMENT_QUESTIONS = [
     ],
   },
   {
+    id: "q_knowledge",
+    text: "Which best describes your financial knowledge?",
+    type: "select",
+    options: [
+      { label: "Beginner", tags: ["knowledge-beginner"] },
+      { label: "Intermediate", tags: ["knowledge-intermediate"] },
+      { label: "Advanced", tags: ["knowledge-advanced"] },
+    ],
+  },
+  {
     id: "q_timeline",
     text: (answers) => {
       const goal = answers.q_goal?.label?.trim();

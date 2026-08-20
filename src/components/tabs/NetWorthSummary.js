@@ -150,6 +150,13 @@ export default function NetWorthSummary({ assets, liabilities, transactions = []
                 </li>
               ))}
             </ul>
+            <Link
+              href="/explorer"
+              className="inline-flex items-center gap-1 text-xs font-medium mt-3"
+              style={{ color: "var(--emerald)" }}
+            >
+              See what else your money could be doing <ArrowRight size={12} />
+            </Link>
           </>
         )}
       </div>

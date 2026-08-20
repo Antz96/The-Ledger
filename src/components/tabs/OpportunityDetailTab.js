@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Pencil, Trash2, ShieldAlert, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
-import { EXPLORER_CATEGORIES, RISK_COLOR, RISK_LEVELS as RISK_OPTIONS, LIQUIDITY_OPTIONS, HORIZON_OPTIONS } from "@/lib/explorerCategories";
+import { ArrowLeft, Pencil, Trash2, ShieldAlert, ShieldCheck, ExternalLink, CheckCircle2, XCircle, BookOpen } from "lucide-react";
+import {
+  EXPLORER_CATEGORIES, RISK_COLOR, RISK_LEVELS as RISK_OPTIONS, LIQUIDITY_OPTIONS, HORIZON_OPTIONS,
+  KNOWLEDGE_LEVELS as KNOWLEDGE_OPTIONS, PRODUCT_TYPES as PRODUCT_TYPE_OPTIONS,
+} from "@/lib/explorerCategories";
 import { ASSET_PURPOSES as PURPOSE_OPTIONS, PURPOSE_COLOR } from "@/lib/ledgerConstants";
 
 function bullets(text) {
@@ -85,18 +88,50 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
               {opportunity.typical_purpose}
             </span>
           )}
+          {opportunity.knowledge_level && (
+            <span className="text-[10px] mono px-1.5 py-0.5 rounded" style={{ background: "var(--panel-hi)", color: "var(--muted)" }}>
+              {opportunity.knowledge_level}
+            </span>
+          )}
+          {opportunity.capital_at_risk !== null && opportunity.capital_at_risk !== undefined && (
+            <span
+              className="text-[10px] mono px-1.5 py-0.5 rounded"
+              style={
+                opportunity.capital_at_risk
+                  ? { background: "rgba(242,99,122,0.1)", color: "var(--rust)" }
+                  : { background: "rgba(15,185,129,0.1)", color: "var(--ledger-green-soft)" }
+              }
+            >
+              {opportunity.capital_at_risk ? "Capital at risk" : "Capital not typically at risk"}
+            </span>
+          )}
         </div>
 
         {opportunity.description && <p className="text-sm opacity-80 leading-relaxed">{opportunity.description}</p>}
       </div>
 
-      {(opportunity.liquidity || opportunity.time_horizon || opportunity.fees || opportunity.tax_considerations || opportunity.common_access_routes) && (
+      {(opportunity.liquidity || opportunity.time_horizon || opportunity.fees || opportunity.tax_considerations ||
+        opportunity.common_access_routes || opportunity.minimum_investment || opportunity.return_characteristics ||
+        opportunity.who_uses_it) && (
         <div className="ledger-card p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
           <Field label="LIQUIDITY" value={opportunity.liquidity} />
           <Field label="TIME HORIZON" value={opportunity.time_horizon} />
+          <Field label="MINIMUM" value={opportunity.minimum_investment} />
           <Field label="FEES" value={opportunity.fees} />
           <Field label="TAX CONSIDERATIONS" value={opportunity.tax_considerations} />
           <Field label="COMMON ACCESS ROUTES" value={opportunity.common_access_routes} />
+          <Field label="RETURN CHARACTERISTICS" value={opportunity.return_characteristics} />
+          <Field label="WHO COMMONLY USES IT" value={opportunity.who_uses_it} />
+          <Field label="EXAMPLE PROVIDERS" value={opportunity.example_providers} />
+        </div>
+      )}
+
+      {opportunity.protection_status && (
+        <div className="ledger-card p-4 sm:p-5">
+          <p className="serif text-sm tracking-wide opacity-80 mb-2 flex items-center gap-1.5">
+            <ShieldCheck size={14} style={{ color: "var(--ledger-green-soft)" }} /> Protection status
+          </p>
+          <p className="text-sm opacity-80 leading-relaxed">{opportunity.protection_status}</p>
         </div>
       )}
 
@@ -149,6 +184,15 @@ export default function OpportunityDetailTab({ opportunity, isAdmin, onUpdate, o
         </div>
       )}
 
+      {opportunity.educational_resources && (
+        <div className="ledger-card p-4 sm:p-5">
+          <p className="serif text-sm tracking-wide opacity-80 mb-2 flex items-center gap-1.5">
+            <BookOpen size={14} style={{ color: "var(--ledger-green-soft)" }} /> Educational resources
+          </p>
+          <p className="text-sm opacity-80 leading-relaxed">{opportunity.educational_resources}</p>
+        </div>
+      )}
+
       {opportunity.source_url && (
         <a
           href={opportunity.source_url}
@@ -190,6 +234,16 @@ function EditForm({ opportunity, onSave, onCancel }) {
     key_risks: opportunity.key_risks || "",
     common_access_routes: opportunity.common_access_routes || "",
     source_url: opportunity.source_url || "",
+    minimum_investment: opportunity.minimum_investment || "",
+    return_characteristics: opportunity.return_characteristics || "",
+    capital_at_risk: opportunity.capital_at_risk === null || opportunity.capital_at_risk === undefined
+      ? "" : String(opportunity.capital_at_risk),
+    protection_status: opportunity.protection_status || "",
+    who_uses_it: opportunity.who_uses_it || "",
+    example_providers: opportunity.example_providers || "",
+    educational_resources: opportunity.educational_resources || "",
+    knowledge_level: opportunity.knowledge_level || "",
+    product_type: opportunity.product_type || "",
   });
 
   function set(field, value) {
@@ -205,6 +259,9 @@ function EditForm({ opportunity, onSave, onCancel }) {
       liquidity: form.liquidity || null,
       time_horizon: form.time_horizon || null,
       source_url: form.source_url.trim() || null,
+      capital_at_risk: form.capital_at_risk === "" ? null : form.capital_at_risk === "true",
+      knowledge_level: form.knowledge_level || null,
+      product_type: form.product_type || null,
     });
   }
 
@@ -251,6 +308,28 @@ function EditForm({ opportunity, onSave, onCancel }) {
               {HORIZON_OPTIONS.map((h) => <option key={h} value={h} style={{ color: "var(--obsidian-2)" }}>{h}</option>)}
             </select>
           </div>
+          <div>
+            <label htmlFor="opp-knowledge" className={labelClass}>KNOWLEDGE NEEDED</label>
+            <select id="opp-knowledge" value={form.knowledge_level} onChange={(e) => set("knowledge_level", e.target.value)} className={inputClass}>
+              <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+              {KNOWLEDGE_OPTIONS.map((k) => <option key={k} value={k} style={{ color: "var(--obsidian-2)" }}>{k}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="opp-product-type" className={labelClass}>PRODUCT TYPE</label>
+            <select id="opp-product-type" value={form.product_type} onChange={(e) => set("product_type", e.target.value)} className={inputClass}>
+              <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+              {PRODUCT_TYPE_OPTIONS.map((p) => <option key={p} value={p} style={{ color: "var(--obsidian-2)" }}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="opp-capital-risk" className={labelClass}>CAPITAL AT RISK</label>
+            <select id="opp-capital-risk" value={form.capital_at_risk} onChange={(e) => set("capital_at_risk", e.target.value)} className={inputClass}>
+              <option value="" style={{ color: "var(--obsidian-2)" }}>—</option>
+              <option value="true" style={{ color: "var(--obsidian-2)" }}>Yes</option>
+              <option value="false" style={{ color: "var(--obsidian-2)" }}>No</option>
+            </select>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -261,10 +340,36 @@ function EditForm({ opportunity, onSave, onCancel }) {
             <label htmlFor="opp-tax" className={labelClass}>TAX CONSIDERATIONS</label>
             <input id="opp-tax" value={form.tax_considerations} onChange={(e) => set("tax_considerations", e.target.value)} className={inputClass} />
           </div>
+          <div>
+            <label htmlFor="opp-minimum" className={labelClass}>MINIMUM INVESTMENT</label>
+            <input id="opp-minimum" value={form.minimum_investment} onChange={(e) => set("minimum_investment", e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="opp-returns" className={labelClass}>RETURN CHARACTERISTICS</label>
+            <input id="opp-returns" value={form.return_characteristics} onChange={(e) => set("return_characteristics", e.target.value)} className={inputClass} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="opp-protection" className={labelClass}>PROTECTION STATUS (e.g. FSCS)</label>
+          <input id="opp-protection" value={form.protection_status} onChange={(e) => set("protection_status", e.target.value)} className={inputClass} />
         </div>
         <div>
           <label htmlFor="opp-access" className={labelClass}>COMMON ACCESS ROUTES</label>
           <input id="opp-access" value={form.common_access_routes} onChange={(e) => set("common_access_routes", e.target.value)} className={inputClass} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="opp-who-uses" className={labelClass}>WHO COMMONLY USES IT</label>
+            <input id="opp-who-uses" value={form.who_uses_it} onChange={(e) => set("who_uses_it", e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="opp-providers" className={labelClass}>EXAMPLE PROVIDERS</label>
+            <input id="opp-providers" value={form.example_providers} onChange={(e) => set("example_providers", e.target.value)} className={inputClass} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="opp-resources" className={labelClass}>EDUCATIONAL RESOURCES</label>
+          <input id="opp-resources" value={form.educational_resources} onChange={(e) => set("educational_resources", e.target.value)} className={inputClass} />
         </div>
         <div>
           <label htmlFor="opp-how" className={labelClass}>HOW IT WORKS</label>
