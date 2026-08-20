@@ -5,12 +5,27 @@ import Link from "next/link";
 import { LogOut, HelpCircle, X } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
+import { exportAccountData } from "@/lib/accountApi";
 import WheelNav from "@/components/WheelNav";
 import DeleteAccountModal from "@/components/DeleteAccountModal";
 
 export default function AppShell({ children }) {
   const { displayName, saving, error, currency, handleCurrencyChange, handleSignOut, clearError } = useLedgerData();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  async function handleExport() {
+    setExporting(true);
+    setExportError("");
+    try {
+      await exportAccountData();
+    } catch (err) {
+      setExportError(err.message || "Couldn't export your data.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div style={{ background: "var(--obsidian)", color: "var(--text)", minHeight: "100dvh" }} className="flex flex-col flex-1">
@@ -75,12 +90,19 @@ export default function AppShell({ children }) {
 
       <div className="px-4 sm:px-10 py-6 max-w-6xl mx-auto w-full relative z-10">{children}</div>
 
-      <footer className="px-4 sm:px-10 py-4 flex items-center justify-center gap-3 text-[11px] text-[var(--faint)] relative z-10">
-        <Link href="/terms" className="hover:text-[var(--muted)]">Terms of Service</Link>
-        <span>·</span>
-        <Link href="/privacy" className="hover:text-[var(--muted)]">Privacy Policy</Link>
-        <span>·</span>
-        <button onClick={() => setShowDeleteModal(true)} className="hover:text-[var(--rust)]">Delete account</button>
+      <footer className="px-4 sm:px-10 py-4 flex flex-col items-center gap-1.5 text-[11px] text-[var(--faint)] relative z-10">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Link href="/terms" className="hover:text-[var(--muted)]">Terms of Service</Link>
+          <span>·</span>
+          <Link href="/privacy" className="hover:text-[var(--muted)]">Privacy Policy</Link>
+          <span>·</span>
+          <button onClick={handleExport} disabled={exporting} className="hover:text-[var(--muted)] disabled:opacity-50">
+            {exporting ? "Preparing download…" : "Download my data"}
+          </button>
+          <span>·</span>
+          <button onClick={() => setShowDeleteModal(true)} className="hover:text-[var(--rust)]">Delete account</button>
+        </div>
+        {exportError && <p style={{ color: "var(--rust)" }}>{exportError}</p>}
       </footer>
 
       {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}

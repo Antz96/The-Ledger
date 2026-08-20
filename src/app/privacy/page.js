@@ -106,7 +106,7 @@ export default function PrivacyPage() {
           <li>Have inaccurate data corrected</li>
           <li>Delete your data — you can do this yourself at any time from the &ldquo;Delete account&rdquo; link in the app footer, or by contacting us</li>
           <li>Restrict or object to certain processing</li>
-          <li>Receive your data in a portable format</li>
+          <li>Receive your data in a portable format — use &ldquo;Download my data&rdquo; in the app footer for a JSON copy of everything, any time</li>
           <li>Complain to the <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="underline">Information Commissioner&apos;s Office (ICO)</a></li>
         </ul>
         <p>To exercise any of these, contact <Placeholder>privacy contact email</Placeholder>.</p>
