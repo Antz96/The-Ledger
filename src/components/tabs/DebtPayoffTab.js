@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { TrendingDown, Plus, Pencil, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { TrendingDown, Plus, Pencil, Trash2, ShieldAlert } from "lucide-react";
 import { fmt, LIABILITY_CATEGORIES } from "@/lib/ledgerConstants";
-import { payoffProjection, buildRepaymentPatch, formatPayoffDate } from "@/lib/debtPayoff";
+import { payoffProjection, buildRepaymentPatch, formatPayoffDate, simulateDebtPayoffStrategy } from "@/lib/debtPayoff";
 import StatementUpload from "@/components/ui/StatementUpload";
 import ImportReview from "@/components/ui/ImportReview";
 
@@ -49,8 +49,8 @@ export default function DebtPayoffTab({ liabilities, onAdd, onUpdate, onDelete }
           <TrendingDown size={15} style={{ color: "var(--rust)" }} /> Debt payoff
         </p>
         <p className="text-xs opacity-50 mb-4">
-          A simple projection based on what you&apos;re putting toward each debt each month — not a real amortization
-          schedule, since interest rates aren&apos;t tracked here.
+          A simple projection based on what you&apos;re putting toward each debt each month. Add an interest rate to
+          a debt to also compare payoff strategies below.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -73,6 +73,8 @@ export default function DebtPayoffTab({ liabilities, onAdd, onUpdate, onDelete }
           ))}
         </div>
       )}
+
+      <PayoffStrategy liabilities={liabilities} />
 
       <div className="ledger-card overflow-hidden">
         {pending ? (
@@ -152,11 +154,28 @@ function DebtCard({ item, onUpdate, onDelete }) {
               style={{ borderColor: "var(--line)" }}
             />
           </div>
+          <div>
+            <label className="block text-[10px] mono opacity-60 mb-1">INTEREST RATE (% APR)</label>
+            <input
+              aria-label={`Interest rate for ${item.name}`}
+              type="number" min="0" step="0.01"
+              value={draft.apr_pct ?? ""}
+              onChange={(e) => setDraft((d) => ({ ...d, apr_pct: e.target.value }))}
+              placeholder="optional"
+              className="w-full text-sm mono border rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] placeholder:text-[var(--faint)]"
+              style={{ borderColor: "var(--line)" }}
+            />
+          </div>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => {
-              const patch = { name: draft.name.trim(), category: draft.category, balance: parseFloat(draft.balance) || 0 };
+              const patch = {
+                name: draft.name.trim(),
+                category: draft.category,
+                balance: parseFloat(draft.balance) || 0,
+                apr_pct: draft.apr_pct === "" || draft.apr_pct == null ? null : parseFloat(draft.apr_pct) || 0,
+              };
               Object.assign(patch, buildRepaymentPatch(item, parseFloat(draft.monthly_repayment) || 0));
               onUpdate(item.id, patch);
               setEditing(false);
@@ -179,7 +198,9 @@ function DebtCard({ item, onUpdate, onDelete }) {
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="text-sm font-medium">{item.name}</p>
-          <p className="text-[10px] mono opacity-50">{item.category}</p>
+          <p className="text-[10px] mono opacity-50">
+            {item.category}{Number(item.apr_pct) > 0 ? ` · ${Number(item.apr_pct)}% APR` : ""}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setEditing(true)} aria-label={`Edit ${item.name}`} className="opacity-40 hover:opacity-100"><Pencil size={13} /></button>
@@ -213,8 +234,114 @@ function DebtCard({ item, onUpdate, onDelete }) {
   );
 }
 
+// The user picks the strategy; this only calculates what following their
+// choice would look like (blueprint checklist §7: "does allowing a user to
+// choose avalanche/snowball create debt-counselling risk?" — by construction
+// here, Ledger never picks one, so there's nothing being recommended).
+// Neither option is pre-selected as a default "best" pick, and both are
+// styled identically except for which one is currently chosen.
+function PayoffStrategy({ liabilities }) {
+  const [strategy, setStrategy] = useState("avalanche");
+  const [extra, setExtra] = useState(0);
+
+  const trackedDebts = useMemo(() => liabilities.filter((l) => Number(l.balance) > 0), [liabilities]);
+  const result = useMemo(
+    () => simulateDebtPayoffStrategy(trackedDebts, extra, strategy),
+    [trackedDebts, extra, strategy]
+  );
+
+  if (trackedDebts.length === 0) return null;
+
+  return (
+    <div className="ledger-card p-4 sm:p-5">
+      <p className="serif text-sm tracking-wide opacity-80 mb-1">Payoff strategy</p>
+      <p className="text-xs opacity-50 mb-4">
+        Pick an order to pay these off in, and see what following it would look like. This calculates the
+        consequences of your choice — it isn&apos;t a recommendation of one over the other.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <StrategyOption
+          selected={strategy === "avalanche"}
+          onSelect={() => setStrategy("avalanche")}
+          title="Avalanche"
+          desc="Minimums on everything, extra toward whichever debt has the highest interest rate. Mathematically minimizes total interest paid."
+        />
+        <StrategyOption
+          selected={strategy === "snowball"}
+          onSelect={() => setStrategy("snowball")}
+          title="Snowball"
+          desc="Minimums on everything, extra toward whichever debt has the smallest balance. Clears individual debts faster."
+        />
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="strategy-extra" className="block text-[10px] mono opacity-60 mb-1">EXTRA PER MONTH, BEYOND MINIMUMS</label>
+        <input
+          id="strategy-extra"
+          type="number" min="0" step="0.01"
+          value={extra}
+          onChange={(e) => setExtra(Math.max(0, parseFloat(e.target.value) || 0))}
+          className="w-40 text-sm mono border rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)]"
+          style={{ borderColor: "var(--line)" }}
+        />
+      </div>
+
+      {result.monthsToDebtFree === null ? (
+        <p className="text-xs mb-3" style={{ color: "var(--rust)" }}>
+          At this rate, these debts wouldn&apos;t clear within 50 years — try a higher extra payment.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <p className="text-[10px] mono opacity-50 mb-1">DEBT-FREE IN</p>
+            <p className="text-lg font-semibold">{result.monthsToDebtFree} mo</p>
+          </div>
+          <div>
+            <p className="text-[10px] mono opacity-50 mb-1">TOTAL INTEREST</p>
+            <p className="text-lg font-semibold" style={{ color: "var(--rust)" }}>{fmt(result.totalInterestPaid)}</p>
+          </div>
+        </div>
+      )}
+
+      <p className="text-[10px] mono opacity-50 mb-1.5">ORDER</p>
+      <ol className="text-xs space-y-1 mb-3">
+        {result.order.map((d, i) => (
+          <li key={d.id} className="flex justify-between text-[var(--muted)]">
+            <span>{i + 1}. {d.name}</span>
+            <span className="mono">{d.monthsToPayoff === null ? "—" : `paid off month ${d.monthsToPayoff}`}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="flex items-start gap-2 pt-2 border-t" style={{ borderColor: "var(--line)" }}>
+        <ShieldAlert size={13} className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }} />
+        <p className="text-[11px] leading-relaxed text-[var(--faint)]">
+          Real repayments depend on your actual lender terms, which can differ from a flat interest-rate
+          assumption. Debts without a rate set are treated as 0%.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StrategyOption({ selected, onSelect, title, desc }) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className="text-left p-3 rounded-lg border"
+      style={selected ? { borderColor: "var(--emerald)", background: "rgba(15,185,129,0.06)" } : { borderColor: "var(--line)" }}
+    >
+      <p className="text-sm font-medium text-[var(--text)] mb-1">{title}</p>
+      <p className="text-[11px] text-[var(--muted)] leading-relaxed">{desc}</p>
+    </button>
+  );
+}
+
 function AddDebtForm({ onAdd }) {
-  const empty = { name: "", category: LIABILITY_CATEGORIES[0], balance: "", monthly_repayment: "" };
+  const empty = { name: "", category: LIABILITY_CATEGORIES[0], balance: "", monthly_repayment: "", apr_pct: "" };
   const [form, setForm] = useState(empty);
   const [error, setError] = useState("");
 
@@ -230,6 +357,7 @@ function AddDebtForm({ onAdd }) {
       entry.monthly_repayment = repay;
       if (repay > 0) entry.repayment_start_balance = bal;
     }
+    if (form.apr_pct !== "") entry.apr_pct = parseFloat(form.apr_pct) || 0;
     onAdd(entry);
     setForm(empty);
   }
@@ -237,7 +365,7 @@ function AddDebtForm({ onAdd }) {
   return (
     <div className="ledger-card p-4 sm:p-5">
       <p className="serif text-sm tracking-wide opacity-80 mb-3 flex items-center gap-1.5"><Plus size={15} /> Add a debt</p>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div>
           <label htmlFor="debt-name" className="block text-[10px] mono opacity-60 mb-1">NAME</label>
           <input
@@ -285,7 +413,19 @@ function AddDebtForm({ onAdd }) {
             style={{ borderColor: "var(--line)" }}
           />
         </div>
-        <div className="col-span-2 sm:col-span-4">
+        <div>
+          <label htmlFor="debt-apr" className="block text-[10px] mono opacity-60 mb-1">INTEREST RATE (% APR)</label>
+          <input
+            id="debt-apr"
+            type="number" min="0" step="0.01"
+            value={form.apr_pct}
+            onChange={(e) => setForm((f) => ({ ...f, apr_pct: e.target.value }))}
+            placeholder="optional"
+            className="w-full text-sm mono border rounded px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)] placeholder:text-[var(--faint)]"
+            style={{ borderColor: "var(--line)" }}
+          />
+        </div>
+        <div className="col-span-2 sm:col-span-5">
           <button
             type="submit"
             className="flex items-center justify-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-[var(--obsidian)]"
