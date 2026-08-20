@@ -1,9 +1,10 @@
-import { LayoutDashboard, Wallet, Target, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, TrendingDown, Bot, Compass, Building2 } from "lucide-react";
+import { LayoutDashboard, Wallet, Target, NotebookPen, SlidersHorizontal, GraduationCap, Landmark, CreditCard, TrendingDown, Bot, Compass, Building2, Gauge } from "lucide-react";
 
 // Single source of truth for the app's sections — used by WheelNav and the
 // post-onboarding welcome guide so descriptions never drift between the two.
 export const SECTIONS = [
   { href: "/dashboard", label: "Dashboard", desc: "Income, expenses, and savings at a glance.", Icon: LayoutDashboard },
+  { href: "/check-in", label: "Check-in", desc: "The plain, no-detail version — net worth and how it's trending, nothing else.", Icon: Gauge },
   { href: "/assistant", label: "Assistant", desc: "Ask about your accounts, spending, and goals.", Icon: Bot },
   { href: "/assets", label: "Assets", desc: "Everything you own and owe, in one place.", Icon: Wallet },
   { href: "/connections", label: "Connections", desc: "Link a bank account so its balance and transactions show up live. Experimental.", Icon: Building2 },
