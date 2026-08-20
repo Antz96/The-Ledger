@@ -2,7 +2,16 @@
 // via their own RLS-scoped Supabase client — Claude never sees another user's data.
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { SECTIONS } from "@/lib/navSections";
-import { netWorth as calcNetWorth, projectGoal, sumBy } from "@/lib/financialCalculations";
+import {
+  netWorth as calcNetWorth,
+  projectGoal,
+  sumBy,
+  monthlyTotals,
+  monthlyFlow,
+  savingsRatePct,
+  liquidCash,
+  evaluateConstitutionRule,
+} from "@/lib/financialCalculations";
 
 // Adapts projectGoal()'s real Date/number return shape to the JSON-safe,
 // pre-rounded shape this tool's result needs — the math itself is the same
@@ -112,6 +121,84 @@ export function buildAssistantTools(supabase, userId, ctx) {
     },
   });
 
+  const getFinancialConstitution = betaTool({
+    name: "get_financial_constitution",
+    description:
+      "Get the user's self-set financial rules (savings rate target, cash buffer target, discretionary monthly " +
+      "spend cap, priorities) and how they're actually tracking against each one this month. Use this for any " +
+      "question about savings rate, cash buffer, discretionary spending targets, or 'am I on track with my rules'.",
+    inputSchema: { type: "object", properties: {}, required: [] },
+    run: async () => {
+      const [{ data: constitution }, { data: transactions }, { data: assets }] = await Promise.all([
+        supabase.from("financial_constitution").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("transactions").select("date, type, category, amount").eq("user_id", userId),
+        supabase.from("assets").select("category, value").eq("user_id", userId),
+      ]);
+      if (!constitution) return JSON.stringify({ hasRules: false });
+
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const monthly = monthlyTotals(transactions || [], currentMonth);
+      const flow = monthlyFlow(transactions || [], currentMonth);
+
+      return JSON.stringify({
+        hasRules: true,
+        priorities: constitution.priorities || null,
+        // Each is {actual, target, met} from the same evaluateConstitutionRule
+        // the Constitution page itself calls, or null if that rule isn't set.
+        savingsRateTarget: evaluateConstitutionRule(
+          savingsRatePct(monthly.income, monthly.savings),
+          constitution.savings_rate_target_pct != null ? Number(constitution.savings_rate_target_pct) : null,
+          "min"
+        ),
+        cashBufferTarget: evaluateConstitutionRule(
+          liquidCash(assets || []),
+          constitution.cash_buffer_target != null ? Number(constitution.cash_buffer_target) : null,
+          "min"
+        ),
+        discretionarySpendCap: evaluateConstitutionRule(
+          flow.discretionary,
+          constitution.discretionary_monthly_target != null ? Number(constitution.discretionary_monthly_target) : null,
+          "max"
+        ),
+      });
+    },
+  });
+
+  const updateFinancialConstitution = betaTool({
+    name: "update_financial_constitution",
+    description:
+      "Set or update the user's own financial rules — a savings rate target (% of income), a cash buffer target, " +
+      "a discretionary monthly spend cap, and/or a free-text priorities note. Only include the fields the user " +
+      "actually wants to change; omitted fields keep their existing value. Confirm the numbers with the user " +
+      "before calling this — these are their own chosen targets, not something to suggest unprompted.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        savings_rate_target_pct: { type: "number", description: "Target % of income to save each month." },
+        cash_buffer_target: { type: "number", description: "Target amount to keep in cash." },
+        discretionary_monthly_target: { type: "number", description: "Target monthly cap on discretionary spending." },
+        priorities: { type: "string", description: "Free-text note on their priorities, in their own words." },
+      },
+      required: [],
+    },
+    run: async (input) => {
+      const patch = {};
+      if (input.savings_rate_target_pct != null) patch.savings_rate_target_pct = Number(input.savings_rate_target_pct);
+      if (input.cash_buffer_target != null) patch.cash_buffer_target = Number(input.cash_buffer_target);
+      if (input.discretionary_monthly_target != null) patch.discretionary_monthly_target = Number(input.discretionary_monthly_target);
+      if (input.priorities != null) patch.priorities = String(input.priorities).trim();
+      if (Object.keys(patch).length === 0) return JSON.stringify({ error: "Nothing to update." });
+
+      const { data, error } = await supabase
+        .from("financial_constitution")
+        .upsert({ user_id: userId, ...patch, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+        .select()
+        .single();
+      if (error) return JSON.stringify({ error: error.message });
+      return JSON.stringify({ updated: true, constitution: data });
+    },
+  });
+
   const createSavingsGoal = betaTool({
     name: "create_savings_goal",
     description:
@@ -171,7 +258,16 @@ export function buildAssistantTools(supabase, userId, ctx) {
   // write it to the audit log (§4.1.G) — ctx is the same object the route
   // already reads redirectTo off of.
   ctx.toolsUsed = ctx.toolsUsed || [];
-  const allTools = [getNetWorth, getTransactions, getGoals, getAllocation, createSavingsGoal, goToPage];
+  const allTools = [
+    getNetWorth,
+    getTransactions,
+    getGoals,
+    getAllocation,
+    getFinancialConstitution,
+    createSavingsGoal,
+    updateFinancialConstitution,
+    goToPage,
+  ];
   return allTools.map((tool) => ({
     ...tool,
     run: async (input) => {

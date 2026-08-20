@@ -53,7 +53,9 @@ const TOOL_CATEGORY = {
   get_transactions: "FACT",
   get_goals: "CALCULATION",
   get_allocation: "FACT",
+  get_financial_constitution: "CALCULATION",
   create_savings_goal: "DECISION_SUPPORT",
+  update_financial_constitution: "DECISION_SUPPORT",
   go_to_page: "FACT",
 };
 

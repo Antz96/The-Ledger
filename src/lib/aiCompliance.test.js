@@ -46,6 +46,11 @@ describe("classifyToolsUsed", () => {
     expect(classifyToolsUsed(["get_transactions", "create_savings_goal"])).toBe("DECISION_SUPPORT");
   });
 
+  test("financial constitution lookups and updates classify like their goal equivalents", () => {
+    expect(classifyToolsUsed(["get_financial_constitution"])).toBe("CALCULATION");
+    expect(classifyToolsUsed(["update_financial_constitution"])).toBe("DECISION_SUPPORT");
+  });
+
   test("unknown tool names default to FACT rather than throwing", () => {
     expect(classifyToolsUsed(["some_future_tool"])).toBe("FACT");
   });
