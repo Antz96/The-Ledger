@@ -104,7 +104,7 @@ export default function PrivacyPage() {
         <ul className="list-disc pl-5 space-y-1">
           <li>Access the personal data we hold about you</li>
           <li>Have inaccurate data corrected</li>
-          <li>Ask us to delete your data</li>
+          <li>Delete your data — you can do this yourself at any time from the &ldquo;Delete account&rdquo; link in the app footer, or by contacting us</li>
           <li>Restrict or object to certain processing</li>
           <li>Receive your data in a portable format</li>
           <li>Complain to the <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="underline">Information Commissioner&apos;s Office (ICO)</a></li>

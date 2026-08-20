@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { LogOut, HelpCircle, X } from "lucide-react";
 import { CURRENCIES } from "@/lib/ledgerConstants";
 import { useLedgerData } from "@/lib/LedgerDataContext";
 import WheelNav from "@/components/WheelNav";
+import DeleteAccountModal from "@/components/DeleteAccountModal";
 
 export default function AppShell({ children }) {
   const { displayName, saving, error, currency, handleCurrencyChange, handleSignOut, clearError } = useLedgerData();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
     <div style={{ background: "var(--obsidian)", color: "var(--text)", minHeight: "100dvh" }} className="flex flex-col flex-1">
@@ -76,7 +79,11 @@ export default function AppShell({ children }) {
         <Link href="/terms" className="hover:text-[var(--muted)]">Terms of Service</Link>
         <span>·</span>
         <Link href="/privacy" className="hover:text-[var(--muted)]">Privacy Policy</Link>
+        <span>·</span>
+        <button onClick={() => setShowDeleteModal(true)} className="hover:text-[var(--rust)]">Delete account</button>
       </footer>
+
+      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
     </div>
   );
 }
