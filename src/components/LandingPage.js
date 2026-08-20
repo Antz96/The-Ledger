@@ -165,6 +165,12 @@ export default function LandingPage() {
       </div>
 
       <AuthForm />
+
+      <footer className="max-w-3xl mx-auto px-6 py-8 flex items-center justify-center gap-4 text-xs text-[var(--faint)]">
+        <a href="/terms" className="hover:text-[var(--muted)]">Terms of Service</a>
+        <span>·</span>
+        <a href="/privacy" className="hover:text-[var(--muted)]">Privacy Policy</a>
+      </footer>
     </div>
   );
 }

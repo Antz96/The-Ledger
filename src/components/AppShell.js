@@ -71,6 +71,12 @@ export default function AppShell({ children }) {
       )}
 
       <div className="px-4 sm:px-10 py-6 max-w-6xl mx-auto w-full relative z-10">{children}</div>
+
+      <footer className="px-4 sm:px-10 py-4 flex items-center justify-center gap-3 text-[11px] text-[var(--faint)] relative z-10">
+        <Link href="/terms" className="hover:text-[var(--muted)]">Terms of Service</Link>
+        <span>·</span>
+        <Link href="/privacy" className="hover:text-[var(--muted)]">Privacy Policy</Link>
+      </footer>
     </div>
   );
 }
