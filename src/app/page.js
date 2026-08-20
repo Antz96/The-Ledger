@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/useSession";
-import AuthForm from "@/components/AuthForm";
+import LandingPage from "@/components/LandingPage";
 
 export default function Home() {
   const session = useSession();
@@ -22,5 +22,5 @@ export default function Home() {
     );
   }
 
-  return <AuthForm />;
+  return <LandingPage />;
 }
