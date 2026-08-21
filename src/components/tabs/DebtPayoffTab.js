@@ -6,6 +6,7 @@ import { fmt, LIABILITY_CATEGORIES } from "@/lib/ledgerConstants";
 import { payoffProjection, buildRepaymentPatch, formatPayoffDate, simulateDebtPayoffStrategy } from "@/lib/debtPayoff";
 import StatementUpload from "@/components/ui/StatementUpload";
 import ImportReview from "@/components/ui/ImportReview";
+import NumberField from "@/components/ui/NumberField";
 
 export default function DebtPayoffTab({ liabilities, onAdd, onUpdate, onDelete }) {
   const [pending, setPending] = useState(null);
@@ -284,11 +285,11 @@ function PayoffStrategy({ liabilities }) {
         <>
           <div className="mb-4">
             <label htmlFor="strategy-extra" className="block text-[10px] mono opacity-60 mb-1">EXTRA PER MONTH, BEYOND MINIMUMS</label>
-            <input
+            <NumberField
               id="strategy-extra"
-              type="number" min="0" step="0.01"
+              step="0.01"
               value={extra}
-              onChange={(e) => setExtra(Math.max(0, parseFloat(e.target.value) || 0))}
+              onChange={setExtra}
               className="w-40 text-sm mono border rounded-lg px-2 py-1.5 bg-[var(--panel-hi)] text-[var(--text)]"
               style={{ borderColor: "var(--line)" }}
             />

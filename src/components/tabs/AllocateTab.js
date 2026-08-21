@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { fmt, currencySymbol, todayKey } from "@/lib/ledgerConstants";
 import { monthlyTotals, allocationSplit } from "@/lib/financialCalculations";
 import StatementUpload from "@/components/ui/StatementUpload";
+import NumberField from "@/components/ui/NumberField";
 
 const RISK_ROWS = [
   { key: "low", label: "Low risk", desc: "Savings accounts, CDs, money market", color: "var(--ledger-green-soft)" },
@@ -38,12 +39,11 @@ export default function AllocateTab({ alloc, onUpdateAlloc, transactions = [] })
         <p className="text-xs mono text-[var(--faint)] mb-3">How much do you set aside each month, and how should it split across risk tiers?</p>
         <div className="flex items-center gap-2 mb-5">
           <label htmlFor="allocate-monthly" className="mono text-sm text-[var(--text)]">{currencySymbol()}</label>
-          <input
+          <NumberField
             id="allocate-monthly"
             aria-label="Monthly amount to allocate"
-            type="number" min="0"
             value={alloc.monthly}
-            onChange={(e) => onUpdateAlloc("monthly", Math.max(0, parseFloat(e.target.value) || 0))}
+            onChange={(v) => onUpdateAlloc("monthly", v)}
             className="w-32 border border-[var(--line)] rounded-lg px-2 py-1.5 text-sm mono bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
           />
           <span className="text-xs text-[var(--muted)]">/ month</span>
