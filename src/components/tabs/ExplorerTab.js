@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShieldAlert, Plus, Pencil, Trash2, X, ExternalLink, GitCompare } from "lucide-react";
-import { fmt, currencySymbol, ASSET_PURPOSES } from "@/lib/ledgerConstants";
+import { ASSET_PURPOSES } from "@/lib/ledgerConstants";
 import {
   EXPLORER_CATEGORIES,
   RISK_LEVELS,
@@ -16,7 +16,7 @@ import {
   PRODUCT_TYPE_FILTERS,
   horizonBucketForMonthsAway,
 } from "@/lib/explorerCategories";
-import { allocationSplit } from "@/lib/financialCalculations";
+import ScenarioLab from "@/components/tabs/ScenarioLab";
 
 const PURPOSE_FILTERS = ["All", ...ASSET_PURPOSES];
 
@@ -27,10 +27,10 @@ function monthsUntil(dateString) {
 }
 
 export default function ExplorerTab({
-  alloc, opportunities, financialGoals = [], isAdmin, onAddOpportunity, onUpdateOpportunity, onDeleteOpportunity,
+  alloc, opportunities, financialGoals = [], liabilities = [], isAdmin,
+  onAddOpportunity, onUpdateOpportunity, onDeleteOpportunity,
 }) {
   const router = useRouter();
-  const [exploreAmount, setExploreAmount] = useState(alloc.monthly);
   const [riskFilter, setRiskFilter] = useState("All");
   const [purposeFilter, setPurposeFilter] = useState("All");
   const [liquidityFilter, setLiquidityFilter] = useState("All");
@@ -57,15 +57,10 @@ export default function ExplorerTab({
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  // Uses the real risk-tier split from Allocate, applied to whatever amount
-  // is being explored here — which can be hypothetical, not necessarily the
-  // real monthly figure it defaults from.
-  const exploreDollars = useMemo(() => allocationSplit({ ...alloc, monthly: exploreAmount }), [alloc, exploreAmount]);
   const visible = useMemo(
     () => EXPLORER_CATEGORIES.filter((c) => riskFilter === "All" || c.risk.includes(riskFilter)),
     [riskFilter]
   );
-  const activeAllocated = riskFilter !== "All" ? exploreDollars[riskFilter.toLowerCase()] : null;
 
   const filtersActive =
     purposeFilter !== "All" || liquidityFilter !== "All" || horizonFilter !== "All" ||
@@ -85,24 +80,11 @@ export default function ExplorerTab({
 
   return (
     <div className="space-y-4">
+      <ScenarioLab alloc={alloc} financialGoals={financialGoals} liabilities={liabilities} />
+
       <div className="ledger-card p-4 sm:p-5">
         <p className="serif text-sm tracking-wide opacity-80 mb-1">Where it could go</p>
         <p className="text-xs opacity-50 mb-4">Browse the categories that fit each risk tier, and what&apos;s actually in them.</p>
-
-        <div className="mb-4">
-          <label htmlFor="explore-amount" className="block text-[10px] mono opacity-60 mb-1">HOW MUCH ARE YOU LOOKING TO EXPLORE?</label>
-          <div className="flex items-center gap-2">
-            <span className="mono text-sm text-[var(--text)]">{currencySymbol()}</span>
-            <input
-              id="explore-amount"
-              type="number" min="0"
-              value={exploreAmount}
-              onChange={(e) => setExploreAmount(Math.max(0, parseFloat(e.target.value) || 0))}
-              className="w-32 border border-[var(--line)] rounded-lg px-2 py-1.5 text-sm mono bg-[var(--panel-hi)] text-[var(--text)] focus:outline-none focus:border-[var(--emerald)]"
-            />
-            <span className="text-xs text-[var(--muted)]">/ month</span>
-          </div>
-        </div>
 
         <div className="flex items-center gap-2 flex-wrap mb-4" role="group" aria-label="Filter by risk">
           {RISK_FILTERS.map((r) => (
@@ -120,9 +102,6 @@ export default function ExplorerTab({
               {r}
             </button>
           ))}
-          {activeAllocated !== null && (
-            <span className="text-xs mono opacity-60">{fmt(activeAllocated)}/month at {riskFilter.toLowerCase()} risk, at your current split</span>
-          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">

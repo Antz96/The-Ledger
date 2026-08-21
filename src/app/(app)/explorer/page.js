@@ -5,7 +5,8 @@ import ExplorerTab from "@/components/tabs/ExplorerTab";
 
 export default function ExplorerPage() {
   const {
-    alloc, opportunities, financialGoals, isAdmin, handleAddOpportunity, handleUpdateOpportunity, handleDeleteOpportunity,
+    alloc, opportunities, financialGoals, liabilities, isAdmin,
+    handleAddOpportunity, handleUpdateOpportunity, handleDeleteOpportunity,
   } = useLedgerData();
 
   return (
@@ -13,6 +14,7 @@ export default function ExplorerPage() {
       alloc={alloc}
       opportunities={opportunities}
       financialGoals={financialGoals}
+      liabilities={liabilities}
       isAdmin={isAdmin}
       onAddOpportunity={handleAddOpportunity}
       onUpdateOpportunity={handleUpdateOpportunity}
